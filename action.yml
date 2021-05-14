@@ -1,6 +1,9 @@
 # action.yml
-name: 'Lighthouse CI meets Shopify themes'
-description: 'Run Lighthouse CI on unpublished Shopify themes'
+name: 'Run Lighthouse CI on Shopify theme'
+branding:
+  icon: shopping-bag
+  colour: green
+description: 'Run Lighthouse CI on Shopify themes directly from GitHub'
 inputs:
   app_id:
     description: 'Shopify private app ID'
