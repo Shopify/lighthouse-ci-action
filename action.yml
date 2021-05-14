@@ -1,0 +1,39 @@
+# action.yml
+name: 'Lighthouse CI meets Shopify themes'
+description: 'Run Lighthouse CI on unpublished Shopify themes'
+inputs:
+  app_id:
+    description: 'Shopify private app ID'
+    required: true
+  app_password:
+    description: 'Shopify private app password'
+    required: true
+  store:
+    description: '<domain>.myshopify.com URL'
+    required: true
+  password:
+    description: 'Password-protected shop password'
+    required: false
+  product_handle:
+    description: 'Product handle for product page test (default: first product).'
+    required: false
+  collection_handle:
+    description: 'Collection handle for collection page test (default first collection).'
+    required: false
+  lhci_github_app_token:
+    description: 'Lighthouse CI GitHub app token'
+    required: false
+  lhci_github_token:
+    description: 'GitHub personal access token'
+    required: false
+  lhci_min_score_performance:
+    description: 'Minimum performance score'
+    required: false
+    default: 0.6
+  lhci_min_score_accessibility:
+    description: 'Minimum accessibility score'
+    required: false
+    default: 0.9
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
