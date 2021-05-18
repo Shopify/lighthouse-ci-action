@@ -26,13 +26,7 @@
 [[ -n "$INPUT_LHCI_MIN_SCORE_PERFORMANCE" ]]   && export LHCI_MIN_SCORE_PERFORMANCE="$INPUT_LHCI_MIN_SCORE_PERFORMANCE"
 [[ -n "$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY" ]] && export LHCI_MIN_SCORE_ACCESSIBILITY="$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY"
 
-# Make a writeable place for global node_modules
-export npm_config_prefix="$PWD/.node"
-mkdir -p "$npm_config_prefix"
-chmod -R 777 "$npm_config_prefix"
-umask 000
-
-# Add global node bin to PATH
+# Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
 
 # END of GitHub Action Specific Code

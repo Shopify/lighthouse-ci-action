@@ -17,5 +17,11 @@ RUN apt-get update \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+ENV npm_config_prefix="$GITHUB_WORKSPACE/.node"
+RUN mkdir -p "$npm_config_prefix" \
+  && chmod -R 777 "$npm_config_prefix" \
+  && umask 000 \
+  && npm install -g @lhci/cli@0.7.x puppeteer
+
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
