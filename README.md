@@ -59,7 +59,7 @@ The `shopify/lighthouse-ci-action` accepts the following arguments:
 * `app_id` - (required) Shopify store private app ID.
 * `app_password` - (required) Shopify store private app password.
 * `store` - (required) Shopify store `<domain>.myshopify.com` URL.
-* `store_password` - (optional) For password protected shops
+* `password` - (optional) For password protected shops
 * `product_handle` - (optional) Product handle to run the product page Lighthouse run on. Defaults to the first product.
 * `collection_handle` - (optional) Collection handle to run the product page Lighthouse run on. Defaults to the first collection.
 * `lhci_min_score_performance` - (optional, default: 0.6) Minimum performance score for a passed audit (must be between 0 and 1).
