@@ -17,6 +17,7 @@
 [[ -n "$INPUT_PASSWORD" ]]          && export SHOP_PASSWORD="$INPUT_PASSWORD"
 [[ -n "$INPUT_PRODUCT_HANDLE" ]]    && export SHOP_PRODUCT_HANDLE="$INPUT_PRODUCT_HANDLE"
 [[ -n "$INPUT_COLLECTION_HANDLE" ]] && export SHOP_COLLECTION_HANDLE="$INPUT_COLLECTION_HANDLE"
+[[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
 
 # Optional, these are used by Lighthouse CI to add pass/fail checks on
 # the GitHub Pull Request.
@@ -98,6 +99,8 @@ host="https://$SHOP_STORE"
 # Use the $SHOP_PASSWORD defined as a Github Secret for password protected stores.
 [[ -z ${SHOP_PASSWORD+x} ]] && shop_password='' || shop_password="$SHOP_PASSWORD"
 
+theme_root="$THEME_ROOT"
+
 log "Will run Lighthouse CI on $host"
 
 step "Creating ephemeral theme"
@@ -136,8 +139,8 @@ theme --env="lighthouse-ci" --dir "$theme_placeholder_dir" remove $placeholder_f
 # complain about using section files before they are defined.
 step "Deploying ephemeral theme"
 for folder in assets locales snippets layout sections templates config; do
-  log theme --env="lighthouse-ci" --dir="." deploy $folder
-  theme --env="lighthouse-ci" --dir="." deploy $folder &> /dev/null
+  log theme --env="lighthouse-ci" --dir="$theme_root" deploy $folder
+  theme --env="lighthouse-ci" --dir="$theme_root" deploy $folder &> /dev/null
 done
 
 step "Configuring Lighthouse CI"

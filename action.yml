@@ -37,6 +37,10 @@ inputs:
     description: 'Minimum accessibility score'
     required: false
     default: 0.9
+  theme_root:
+    description: 'The root folder for the theme assets that will be uploaded.  Defaults to `.`. May be `dist` or `build` depending on build system'
+    required: false
+    default: '.'
 runs:
   using: 'docker'
   image: 'Dockerfile'
