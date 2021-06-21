@@ -61,6 +61,7 @@ The `shopify/lighthouse-ci-action` accepts the following arguments:
 * `store` - (required) Shopify store `<domain>.myshopify.com` URL.
 * `password` - (optional) For password protected shops
 * `product_handle` - (optional) Product handle to run the product page Lighthouse run on. Defaults to the first product.
+* `theme_root` - (optional) The root folder for the theme assets that will be uploaded. Defaults to `.`
 * `collection_handle` - (optional) Collection handle to run the product page Lighthouse run on. Defaults to the first collection.
 * `lhci_min_score_performance` - (optional, default: 0.6) Minimum performance score for a passed audit (must be between 0 and 1).
 * `lhci_min_score_accessibility` - (optional, default: 0.9) Minimum accessibility score for a passed audit

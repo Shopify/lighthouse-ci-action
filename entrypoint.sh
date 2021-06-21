@@ -99,7 +99,7 @@ host="https://$SHOP_STORE"
 # Use the $SHOP_PASSWORD defined as a Github Secret for password protected stores.
 [[ -z ${SHOP_PASSWORD+x} ]] && shop_password='' || shop_password="$SHOP_PASSWORD"
 
-theme_root="$THEME_ROOT"
+theme_root="${THEME_ROOT:-.}"
 
 log "Will run Lighthouse CI on $host"
 
