@@ -55,6 +55,10 @@ is_installed() {
 }
 
 cleanup() {
+  if [[ -s "$errlog" ]]; then
+    cat "$errlog"
+  fi
+
   if [[ -n "${theme_id+x}" ]]; then
     step "Disposing ephemeral theme"
     curl -s -X DELETE \
@@ -95,6 +99,7 @@ step "Configuring Theme Kit"
 username="$SHOP_APP_ID"
 password="$SHOP_APP_PASSWORD"
 host="https://$SHOP_STORE"
+errlog="$(mktemp)"
 
 # Use the $SHOP_PASSWORD defined as a Github Secret for password protected stores.
 [[ -z ${SHOP_PASSWORD+x} ]] && shop_password='' || shop_password="$SHOP_PASSWORD"
@@ -111,7 +116,8 @@ theme_name="lhci/$commit_sha"
 
 # We're creating a fake theme here to bypass theme-kit validation. We're going to remove those files.
 theme_placeholder_dir="$(mktemp -d)"
-theme new --env="lighthouse-ci" --dir "$theme_placeholder_dir" --no-ignore --name="$theme_name" &> /dev/null
+theme new --env="lighthouse-ci" --dir "$theme_placeholder_dir" --no-ignore --name="$theme_name" \
+  &> "$errlog" && rm "$errlog"
 
 # Getting the theme_id from the theme_name
 theme_id="$(
@@ -133,14 +139,16 @@ placeholder_files="$(
   | grep -E -v "^templates/gift_card.liquid" \
   | xargs
 )"
-theme --env="lighthouse-ci" --dir "$theme_placeholder_dir" remove $placeholder_files &> /dev/null
+theme --env="lighthouse-ci" --dir "$theme_placeholder_dir" remove $placeholder_files \
+  &> "$errlog" && rm "$errlog"
 
 # Files must be uploaded in a certain order otherwise Theme Kit will
 # complain about using section files before they are defined.
 step "Deploying ephemeral theme"
 for folder in assets locales snippets layout sections templates config; do
   log theme --env="lighthouse-ci" --dir="$theme_root" deploy $folder
-  theme --env="lighthouse-ci" --dir="$theme_root" deploy $folder &> /dev/null
+  theme --env="lighthouse-ci" --dir="$theme_root" deploy $folder \
+    &> "$errlog" && rm "$errlog"
 done
 
 step "Configuring Lighthouse CI"
