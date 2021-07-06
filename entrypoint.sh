@@ -55,15 +55,9 @@ is_installed() {
 }
 
 cleanup() {
-  if [[ -s "$errlog" ]]; then
-    cat "$errlog"
-  fi
-
-  if [[ -n "${theme_id+x}" ]]; then
-    step "Disposing ephemeral theme"
-    curl -s -X DELETE \
-      -u $username:$password \
-      "$host/admin/api/2021-04/themes/$theme_id.json"
+  if [[ -n "${theme+x}" ]]; then
+    step "Disposing development theme"
+    shopify logout
   fi
 
   if [[ -f "lighthouserc.yml" ]]; then
@@ -72,10 +66,6 @@ cleanup() {
 
   if [[ -f "setPreviewCookies.js" ]]; then
     rm "setPreviewCookies.js"
-  fi
-
-  if [[ -n "${theme_placeholder_dir+x}" ]]; then
-    rm -rf "$theme_placeholder_dir"
   fi
 
   return $1
@@ -89,67 +79,39 @@ if ! is_installed lhci; then
   npm install -g @lhci/cli@0.7.x puppeteer
 fi
 
-if ! is_installed theme; then
-  step "Installing Theme Kit"
-  log "curl -s https://shopify.dev/themekit.py | sudo python"
-  curl -s https://shopify.dev/themekit.py | sudo python
+if ! is_installed shopify; then
+  step "Installing Shopify CLI"
+  log "gem install shopify"
+  gem install shopify
 fi
 
-step "Configuring Theme Kit"
+step "Configuring shopify CLI"
+
+# Disable analytics
+mkdir -p ~/.config/shopify && cat <<-YAML > ~/.config/shopify/config
+[analytics]
+enabled = false
+YAML
+
+# Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
+export CI=1
+export SHOPIFY_SHOP="$SHOP_STORE"
+export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
+
+shopify login
+
 username="$SHOP_APP_ID"
 password="$SHOP_APP_PASSWORD"
 host="https://$SHOP_STORE"
-errlog="$(mktemp)"
+theme_root="${THEME_ROOT:-.}"
 
 # Use the $SHOP_PASSWORD defined as a Github Secret for password protected stores.
 [[ -z ${SHOP_PASSWORD+x} ]] && shop_password='' || shop_password="$SHOP_PASSWORD"
 
-theme_root="${THEME_ROOT:-.}"
-
 log "Will run Lighthouse CI on $host"
 
-step "Creating ephemeral theme"
-export THEMEKIT_PASSWORD="$SHOP_APP_PASSWORD"
-export THEMEKIT_STORE="$SHOP_STORE"
-commit_sha="$(echo ${GITHUB_SHA:-$(git rev-parse --ref HEAD)} | head -c 8)"
-theme_name="lhci/$commit_sha"
-
-# We're creating a fake theme here to bypass theme-kit validation. We're going to remove those files.
-theme_placeholder_dir="$(mktemp -d)"
-theme new --env="lighthouse-ci" --dir "$theme_placeholder_dir" --no-ignore --name="$theme_name" \
-  &> "$errlog" && rm "$errlog"
-
-# Getting the theme_id from the theme_name
-theme_id="$(
-  theme get --list \
-    | grep "$theme_name" \
-    | tail -n 1 \
-    | cut -d ' ' -f3 \
-    | sed -e 's/\[//g' -e 's/\]//g'
-)"
-
-export THEMEKIT_THEME_ID="$theme_id"
-
-step "Deleting placeholder files"
-placeholder_files="$(
-  cd $theme_placeholder_dir &&  \
-  find * -type f -print \
-  | grep -E -v "^config/" \
-  | grep -E -v "^layout/theme.liquid" \
-  | grep -E -v "^templates/gift_card.liquid" \
-  | xargs
-)"
-theme --env="lighthouse-ci" --dir "$theme_placeholder_dir" remove $placeholder_files \
-  &> "$errlog" && rm "$errlog"
-
-# Files must be uploaded in a certain order otherwise Theme Kit will
-# complain about using section files before they are defined.
-step "Deploying ephemeral theme"
-for folder in assets locales snippets layout sections templates config; do
-  log theme --env="lighthouse-ci" --dir="$theme_root" deploy $folder
-  theme --env="lighthouse-ci" --dir="$theme_root" deploy $folder \
-    &> "$errlog" && rm "$errlog"
-done
+step "Creating development theme"
+theme="$(shopify theme push --development --json $theme_root)"
 
 step "Configuring Lighthouse CI"
 
@@ -177,8 +139,8 @@ fi
 
 # Disable redirects + preview bar
 query_string="?_fd=0&pb=0"
-min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-'0.6'}"
-min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-'0.9'}"
+min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
+min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
 cat <<- EOF > lighthouserc.yml
 ci:
@@ -191,6 +153,9 @@ ci:
     puppeteerLaunchOptions:
       args:
         - "--no-sandbox"
+        - "--disable-setuid-sandbox"
+        - "--disable-dev-shm-usage"
+        - "--disable-gpu"
   upload:
     target: temporary-public-storage
   assert:
@@ -205,6 +170,8 @@ ci:
           aggregationMethod: median-run
 EOF
 
+preview_url="$(echo "$theme" | jq -r '.theme.preview_url')&_fd=0"
+
 cat <<-EOF > setPreviewCookies.js
 module.exports = async (browser) => {
   // launch browser for LHCI
@@ -212,7 +179,7 @@ module.exports = async (browser) => {
   // Get password cookie if password is set
   if ('$shop_password' !== '') await page.goto('$host/password?password=$shop_password');
   // Get preview cookie
-  await page.goto('$host?_fd=0&preview_theme_id=$theme_id');
+  await page.goto('$preview_url');
   // close session for next run
   await page.close();
 };

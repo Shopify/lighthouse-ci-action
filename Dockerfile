@@ -1,8 +1,18 @@
-FROM node:14
+FROM node:14-buster
 
 # Install dependencies
-RUN apt-get update && \
-      apt-get -y install sudo jq
+RUN apt-get update \
+    && apt-get -y install sudo jq rbenv
+
+ENV PATH="/root/.rbenv/shims:${PATH}"
+
+# install ruby + shopify-cli
+RUN mkdir -p "$(rbenv root)"/plugins \
+    && git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build \
+    && git -C "$(rbenv root)"/plugins/ruby-build pull \
+    && rbenv install 2.7.1 \
+    && rbenv global 2.7.1 \
+    && gem install shopify-cli -N
 
 ###
 # Chrome in Docker fix
