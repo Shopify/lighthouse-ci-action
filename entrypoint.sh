@@ -118,23 +118,39 @@ step "Configuring Lighthouse CI"
 if [[ -n "${SHOP_PRODUCT_HANDLE+x}" ]]; then
   product_handle="$SHOP_PRODUCT_HANDLE"
 else
-  product_handle="$(
+  log "Fetching product handle"
+  product_response="$(
     curl -s -X GET \
       -u $username:$password \
-      "$host/admin/api/2021-04/products.json?published_status=published&limit=1" \
-      | jq -r '.products[0].handle'
+      "$host/admin/api/2021-04/products.json?published_status=published&limit=1"
   )"
+  product_handle="$(echo "$product_response" | jq -r '.products[0].handle')"
+  product_error="$(echo "$product_response" | jq '.errors')"
+  if [[ $product_error != 'null' ]]; then
+    log "There's been an error fetching the product handle"
+    log "$product_error"
+    exit 1
+  fi
+  log "Using $product_handle"
 fi
 
 if [[ -n "${SHOP_COLLECTION_HANDLE+x}" ]]; then
   collection_handle="$SHOP_COLLECTION_HANDLE"
 else
-  collection_handle="$(
+  log "Fetching collection handle"
+  collection_response="$(
     curl -s -X GET \
       -u $username:$password \
-      "$host/admin/api/2021-04/custom_collections.json?published_status=published&limit=1" \
-      | jq -r '.custom_collections[0].handle'
+      "$host/admin/api/2021-04/custom_collections.json?published_status=published&limit=1"
   )"
+  collection_handle="$(echo "$collection_response" | jq -r '.custom_collections[0].handle')"
+  collection_error="$(echo "$collection_response" | jq '.errors')"
+  if [[ $collection_error != 'null' ]]; then
+    log "There's been an error fetching the collection handle"
+    log "$collection_error"
+    exit 1
+  fi
+  log "Using $collection_handle"
 fi
 
 # Disable redirects + preview bar

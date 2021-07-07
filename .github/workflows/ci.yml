@@ -21,6 +21,8 @@ jobs:
           app_id: ${{ secrets.SHOP_APP_ID }}
           app_password: ${{ secrets.SHOP_APP_PASSWORD }}
           store: shimmering-islands.myshopify.com
+          product_handle: outdoor-sofa
+          collection_handle: frontpage
           theme_root: "./dawn"
           lhci_min_score_performance: 0.1
           lhci_min_score_accessibility: 0.1
