@@ -111,7 +111,9 @@ theme_root="${THEME_ROOT:-.}"
 log "Will run Lighthouse CI on $host"
 
 step "Creating development theme"
-theme="$(shopify theme push --development --json $theme_root)"
+theme_push_log="$(mktemp)"
+shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
 
 step "Configuring Lighthouse CI"
 
@@ -162,9 +164,9 @@ cat <<- EOF > lighthouserc.yml
 ci:
   collect:
     url:
-      - $host/$query_string
-      - $host/products/$product_handle$query_string
-      - $host/collections/$collection_handle$query_string
+      - "$host/$query_string"
+      - "$host/products/$product_handle$query_string"
+      - "$host/collections/$collection_handle$query_string"
     puppeteerScript: './setPreviewCookies.js'
     puppeteerLaunchOptions:
       args:
@@ -186,15 +188,24 @@ ci:
           aggregationMethod: median-run
 EOF
 
-preview_url="$(echo "$theme" | jq -r '.theme.preview_url')"
-
 cat <<-EOF > setPreviewCookies.js
 module.exports = async (browser) => {
   // launch browser for LHCI
+  console.error('Getting a new page...');
   const page = await browser.newPage();
   // Get password cookie if password is set
-  if ('$shop_password' !== '') await page.goto('$host/password?password=$shop_password');
+  if ('$shop_password' !== '') {
+    console.error('Getting password cookie...');
+    await page.goto('$host/password');
+    await page.waitForSelector('form[action*=password] input[type="password"]');
+    await page.\$eval('form[action*=password] input[type="password"]', input => input.value = '$shop_password');
+    await Promise.all([
+      page.waitForNavigation(),
+      page.\$eval('form[action*=password]', form => form.submit()),
+    ])
+  }
   // Get preview cookie
+  console.error('Getting preview cookie...');
   await page.goto('$preview_url');
   // close session for next run
   await page.close();
