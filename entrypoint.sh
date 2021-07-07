@@ -170,7 +170,7 @@ ci:
           aggregationMethod: median-run
 EOF
 
-preview_url="$(echo "$theme" | jq -r '.theme.preview_url')&_fd=0"
+preview_url="$(echo "$theme" | jq -r '.theme.preview_url')"
 
 cat <<-EOF > setPreviewCookies.js
 module.exports = async (browser) => {
