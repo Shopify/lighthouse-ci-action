@@ -24,7 +24,7 @@ inputs:
     description: 'Collection handle for collection page test (default: first collection).'
     required: false
   theme_root:
-    description: 'The root folder for the theme assets that will be uploaded (default: ".")'
+    description: 'The root folder for the theme files that will be uploaded (default: ".")'
     required: false
     default: '.'
   lhci_github_app_token:
