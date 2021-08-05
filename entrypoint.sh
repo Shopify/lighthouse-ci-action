@@ -124,12 +124,12 @@ YAML
 
 # Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
 export CI=1
-export SHOPIFY_SHOP="$SHOP_STORE"
+export SHOPIFY_SHOP="${SHOP_STORE#*(https://|http://)}"
 export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
 
 shopify login
 
-host="https://$SHOP_STORE"
+host="https://${SHOP_STORE#*(https://|http://)}"
 theme_root="${THEME_ROOT:-.}"
 
 # Use the $SHOP_PASSWORD defined as a Github Secret for password protected stores.
