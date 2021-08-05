@@ -54,6 +54,35 @@ is_installed() {
   type $1 &> /dev/null 2>&1
 }
 
+api_request() {
+  local url="$1"
+  local username="$SHOP_APP_ID"
+  local password="$SHOP_APP_PASSWORD"
+  local err="$(mktemp)"
+  local out="$(mktemp)"
+
+  set +e
+  curl -sS -f -X GET -u "$username:$password" "$url" \
+    1> "$out" 2> "$err"
+  set -e
+
+  local exit_code="$?"
+  local errors="$(cat "$out" | jq '.errors')"
+
+  if [[ $exit_code != '0' ]]; then
+    log "There's been a curl error when querying the API"
+    cat "$err" 1>&2
+    return 1
+  elif [[ $errors != 'null' ]]; then
+    log "There's been an error when querying the API"
+    log "$errors"
+    cat "$err" 1>&2
+    return 1
+  fi
+
+  cat "$out"
+}
+
 cleanup() {
   if [[ -n "${theme+x}" ]]; then
     step "Disposing development theme"
@@ -100,8 +129,6 @@ export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
 
 shopify login
 
-username="$SHOP_APP_ID"
-password="$SHOP_APP_PASSWORD"
 host="https://$SHOP_STORE"
 theme_root="${THEME_ROOT:-.}"
 
@@ -121,18 +148,8 @@ if [[ -n "${SHOP_PRODUCT_HANDLE+x}" ]]; then
   product_handle="$SHOP_PRODUCT_HANDLE"
 else
   log "Fetching product handle"
-  product_response="$(
-    curl -s -X GET \
-      -u $username:$password \
-      "$host/admin/api/2021-04/products.json?published_status=published&limit=1"
-  )"
+  product_response="$(api_request "$host/admin/api/2021-04/products.json?published_status=published&limit=1")"
   product_handle="$(echo "$product_response" | jq -r '.products[0].handle')"
-  product_error="$(echo "$product_response" | jq '.errors')"
-  if [[ $product_error != 'null' ]]; then
-    log "There's been an error fetching the product handle"
-    log "$product_error"
-    exit 1
-  fi
   log "Using $product_handle"
 fi
 
@@ -140,18 +157,8 @@ if [[ -n "${SHOP_COLLECTION_HANDLE+x}" ]]; then
   collection_handle="$SHOP_COLLECTION_HANDLE"
 else
   log "Fetching collection handle"
-  collection_response="$(
-    curl -s -X GET \
-      -u $username:$password \
-      "$host/admin/api/2021-04/custom_collections.json?published_status=published&limit=1"
-  )"
+  collection_response="$(api_request "$host/admin/api/2021-04/custom_collections.json?published_status=published&limit=1")"
   collection_handle="$(echo "$collection_response" | jq -r '.custom_collections[0].handle')"
-  collection_error="$(echo "$collection_response" | jq '.errors')"
-  if [[ $collection_error != 'null' ]]; then
-    log "There's been an error fetching the collection handle"
-    log "$collection_error"
-    exit 1
-  fi
   log "Using $collection_handle"
 fi
 
