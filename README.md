@@ -37,6 +37,8 @@ Authentication is done with private app credentials. The same ones you'd use wit
 
 You will need to provide the `app_id`, `app_password` and `store` as parameters to the GitHub action. It is recommended to set these as [GitHub secrets](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-an-environment) on your repo.
 
+You can alternatively create an `app_id` and `app_password` using [HTTP Auth](https://shopify.dev/apps/auth/basic-http). Follow the guide to create an API Key and Password, using these as the `app_id` and `app_password` respectively.
+
 ```yml
 jobs:
   lhci:
