@@ -28,6 +28,9 @@
 [[ -n "$INPUT_LHCI_MIN_SCORE_PERFORMANCE" ]]   && export LHCI_MIN_SCORE_PERFORMANCE="$INPUT_LHCI_MIN_SCORE_PERFORMANCE"
 [[ -n "$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY" ]] && export LHCI_MIN_SCORE_ACCESSIBILITY="$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY"
 
+# Optional, used to override the default Shopify API rate limit
+[[ -n "$INPUT_SHOP_APP_API_FREQUENCY" ]] && export SHOP_APP_API_FREQUENCY="$INPUT_SHOP_APP_API_FREQUENCY"
+
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
 
@@ -61,6 +64,10 @@ api_request() {
   local err="$(mktemp)"
   local out="$(mktemp)"
 
+  # Use a default API request frequency of 2 for non-Plus
+  local api_frequency="${SHOP_APP_API_FREQUENCY:-2}"
+  local sleep_time="$(bc <<< "scale=2; 1/$api_frequency")"
+
   set +e
   curl -sS -f -X GET -u "$username:$password" "$url" \
     1> "$out" 2> "$err"
@@ -78,6 +85,9 @@ api_request() {
     log "$errors"
     cat "$err" 1>&2
     return 1
+  else
+    # Linear back-off for Shopify API requests
+    sleep $sleep_time
   fi
 
   cat "$out"
