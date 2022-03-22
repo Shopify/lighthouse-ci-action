@@ -5,12 +5,11 @@ branding:
   colour: green
 description: 'Run Lighthouse CI on Shopify themes directly from GitHub'
 inputs:
-  app_id:
-    description: 'Shopify private app ID'
-    required: true
-  app_password:
-    description: 'Shopify private app password'
-    required: true
+  access_token:
+    description: 'Custom app access token'
+    # required: false because you can still authenticate with private
+    # app credentials
+    required: false
   store:
     description: '<domain>.myshopify.com URL'
     required: true
@@ -41,6 +40,14 @@ inputs:
     description: 'Minimum accessibility score'
     required: false
     default: 0.9
+  app_id:
+    description: '(deprecated) Shopify private app ID'
+    depreciationMessage: Shopify private apps are deprecated. Use a Custom App `access_token` instead.
+    required: false
+  app_password:
+    description: '(deprecated) Shopify private app password'
+    depreciationMessage: Shopify private apps are deprecated. Use a Custom App `access_token` instead.
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
