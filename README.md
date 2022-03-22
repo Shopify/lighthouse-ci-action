@@ -23,9 +23,8 @@ jobs:
       - name: Lighthouse
         uses: shopify/lighthouse-ci-action@1.0
         with:
-          app_id: ${{ secrets.SHOP_APP_ID }}
-          app_password: ${{ secrets.SHOP_APP_PASSWORD }}
           store: ${{ secrets.SHOP_STORE }}
+          access_token: ${{ secrets.SHOP_ACCESS_TOKEN }}
           lhci_github_app_token: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
           lhci_min_score_performance: 0.9
           lhci_min_score_accessibility: 0.9
@@ -33,39 +32,25 @@ jobs:
 
 ## Authentication
 
-Authentication is done with private app credentials. The same ones you'd use with [Theme Kit](https://shopify.dev/tools/theme-kit/getting-started#step-2-generate-api-credentials). If you don't have these, you can follow these steps:
+Authentication is done with [Custom App access tokens](https://shopify.dev/apps/auth/admin-app-access-tokens).
 
-1. Create a Custom App (Shopify store > Apps > Develop Apps for your store > Create an app > Call it something descriptive)
-2. On the Custom App you created: go to API Credentials and grab the _Admin API access token_ and the _API secret key_. Ignore the API key.
-3. On your GitHub Secrets add the following secrets:
-      * SHOP_APP_ID: this is the _Admin API access token_ from the custom app
-      * SHOP_APP_PASSWORD: this is the _API secret key_ from the custom app
-4. In Configuration settings, tick the following access scopes: `read_product_listings`, `read_products`, `write_themes` and `read_themes`.
-5. Install the app using the green button in the top right corner.
-
-You will need to provide the `app_id`, `app_password` and `store` as parameters to the GitHub action. It is recommended to set these as [GitHub secrets](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-an-environment) on your repo.
-
-```yml
-jobs:
-  lhci:
-    name: Lighthouse
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Lighthouse
-        uses: shopify/lighthouse-ci-action@1.0
-        with:
-          app_id: ${{ secrets.SHOP_APP_ID }}
-          app_password: ${{ secrets.SHOP_APP_PASSWORD }}
-          store: ${{ secrets.SHOP_STORE }}
-```
+1. [Create the app](https://help.shopify.com/en/manual/apps/custom-apps#create-and-install-a-custom-app).
+2. Click the `Configure Admin API Scopes` button.
+3. Enable the following scopes:
+   - `read_products`
+   - `write_themes`
+4. Click `Save`.
+5. From the `API credentials` tab, install the app.
+6. Take note of the `Admin API access token`.
+7. Add the following to your repository's [GitHub Secrets](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-an-environment):
+   - `SHOP_ACCESS_TOKEN`: the Admin API access token
+   - `SHOP_STORE`: Shopify store `<store>.myshopify.com` URL
 
 ## Configuration
 
 The `shopify/lighthouse-ci-action` accepts the following arguments:
 
-* `app_id` - (required) Shopify store private app ID.
-* `app_password` - (required) Shopify store private app password.
+* `access_token` - (required) see [Authentication](#authentication)
 * `store` - (required) Shopify store `<domain>.myshopify.com` URL.
 * `password` - (optional) For password protected shops
 * `product_handle` - (optional) Product handle to run the product page Lighthouse run on. Defaults to the first product.
@@ -80,3 +65,10 @@ For the GitHub Status Checks on PR. One of the two arguments is required:
 * `lhci_github_token` - (optional) GitHub personal access token
 
 For more details on the implications of choosing one over the other, refer to the [Lighthouse CI Getting Started Page](https://github.com/GoogleChrome/lighthouse-ci/blob/main/docs/getting-started.md#github-status-checks)
+
+### Deprecated authentication configuration
+
+The following were used to authenticate with private apps.
+
+* `app_id` - (deprecated) Shopify store private app ID.
+* `app_password` - (deprecated) Shopify store private app password.
