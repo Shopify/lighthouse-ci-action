@@ -165,7 +165,7 @@ else
 fi
 
 # Disable redirects + preview bar
-query_string="?preview_theme_id=$(echo "$preview_id")&_fd=0&pb=0"
+query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
