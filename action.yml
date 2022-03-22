@@ -41,6 +41,10 @@ inputs:
     description: 'Minimum accessibility score'
     required: false
     default: 0.9
+  lhci_config_path:
+    description: 'Path to custom Lighthouse CI config'
+    required: false
+    default: '.lighthouserc.yml'
 runs:
   using: 'docker'
   image: 'Dockerfile'

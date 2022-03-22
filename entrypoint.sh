@@ -28,6 +28,9 @@
 [[ -n "$INPUT_LHCI_MIN_SCORE_PERFORMANCE" ]]   && export LHCI_MIN_SCORE_PERFORMANCE="$INPUT_LHCI_MIN_SCORE_PERFORMANCE"
 [[ -n "$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY" ]] && export LHCI_MIN_SCORE_ACCESSIBILITY="$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY"
 
+# Optional
+[[ -n "$INPUT_LHCI_CONFIG_PATH" ]] && export LHCI_CONFIG_PATH="$INPUT_LHCI_CONFIG_PATH"
+
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
 
@@ -169,7 +172,9 @@ query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
-cat <<- EOF > lighthouserc.yml
+# Prepare the default Lighthouse CI config
+default_config="$(mktemp XXXXX.yml)"
+cat <<- EOF > $default_config
 ci:
   collect:
     url:
@@ -196,6 +201,16 @@ ci:
         - minScore: $min_score_accessibility
           aggregationMethod: median-run
 EOF
+
+# Merge custom Lighthouse CI config, if provided
+custom_config="${LHCI_CONFIG_PATH:-.lighthouserc.yml}"
+
+if [[ -f "$custom_config" ]]; then
+  yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' "$default_config" "$custom_config" > .lighthouserc.yml.tmp
+  mv .lighthouserc.yml.tmp .lighthouserc.yml
+else
+  mv $default_config .lighthouserc.yml
+fi
 
 cat <<-EOF > setPreviewCookies.js
 module.exports = async (browser) => {

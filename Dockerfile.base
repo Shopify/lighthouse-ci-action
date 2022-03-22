@@ -10,7 +10,9 @@ RUN apt-get update \
     && git -C "$(rbenv root)"/plugins/ruby-build pull \
     && rbenv install 2.7.1 \
     && rbenv global 2.7.1 \
-    && gem install shopify-cli -N
+    && gem install shopify-cli -N \
+    && wget https://github.com/mikefarah/yq/releases/download/v4.13.5/yq_linux_386 -O /usr/bin/yq \
+    && chmod +x /usr/bin/yq
 
 ###
 # Chrome in Docker fix
