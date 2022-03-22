@@ -4,8 +4,40 @@ name: CI
 on: [push]
 
 jobs:
-  check_dawn_staff_store:
+  check_dawn:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - job_name: 'staff store, custom app login'
+            store: shimmering-islands.myshopify.com
+            app_id: ''
+            app_password: ''
+            access_token: SHOP_ACCESS_TOKEN
+            password: ''
+
+          - job_name: 'staff store, private app login'
+            store: shimmering-islands.myshopify.com
+            app_id: SHOP_APP_ID
+            app_password: SHOP_APP_PASSWORD
+            access_token: ''
+            password: ''
+
+          - job_name: 'dev store, custom app login'
+            store: cpclermont-dev-store.myshopify.com
+            app_id: ''
+            app_password: DEV_APP_PASSWORD
+            access_token: DEV_ACCESS_TOKEN
+            password: DEV_PASSWORD
+
+          - job_name: 'dev store, private app login'
+            store: cpclermont-dev-store.myshopify.com
+            app_id: DEV_APP_ID
+            app_password: DEV_APP_PASSWORD
+            access_token: ''
+            password: DEV_PASSWORD
+
+    name: ${{ matrix.job_name }}
 
     steps:
       - uses: actions/checkout@v2
@@ -18,35 +50,11 @@ jobs:
         uses: ./
         id: lighthouse-ci-action
         with:
-          app_id: ${{ secrets.SHOP_APP_ID }}
-          app_password: ${{ secrets.SHOP_APP_PASSWORD }}
-          store: shimmering-islands.myshopify.com
-          product_handle: outdoor-sofa
-          collection_handle: frontpage
-          theme_root: "./dawn"
-          lhci_min_score_performance: 0.1
-          lhci_min_score_accessibility: 0.1
-
-  check_dawn_dev_store:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/checkout@v2
-        with:
-          repository: "shopify/dawn"
-          path: "./dawn"
-
-      - name: Lighthouse CI action
-        uses: ./
-        id: lighthouse-ci-action
-        with:
-          app_id: ${{ secrets.DEV_APP_ID }}
-          app_password: ${{ secrets.DEV_APP_PASSWORD }}
-          store: cpclermont-dev-store.myshopify.com
-          password: ${{ secrets.DEV_PASSWORD }}
-          product_handle: convertible-coffee-table
-          collection_handle: frontpage
+          app_id: ${{ secrets[matrix.app_id] }}
+          app_password: ${{ secrets[matrix.app_password] }}
+          access_token: ${{ secrets[matrix.access_token] }}
+          store: ${{ matrix.store }}
+          password: ${{ secrets[matrix.password] }}
           theme_root: "./dawn"
           lhci_min_score_performance: 0.1
           lhci_min_score_accessibility: 0.1
