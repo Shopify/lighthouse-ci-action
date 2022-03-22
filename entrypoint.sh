@@ -142,6 +142,7 @@ step "Creating development theme"
 theme_push_log="$(mktemp)"
 shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
+preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
 
 step "Configuring Lighthouse CI"
 
@@ -164,7 +165,7 @@ else
 fi
 
 # Disable redirects + preview bar
-query_string="?_fd=0&pb=0"
+query_string="?preview_theme_id=$(echo "$preview_id")&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
@@ -204,7 +205,7 @@ module.exports = async (browser) => {
   // Get password cookie if password is set
   if ('$shop_password' !== '') {
     console.error('Getting password cookie...');
-    await page.goto('$host/password');
+    await page.goto('$host/password$query_string');
     await page.waitForSelector('form[action*=password] input[type="password"]');
     await page.\$eval('form[action*=password] input[type="password"]', input => input.value = '$shop_password');
     await Promise.all([
