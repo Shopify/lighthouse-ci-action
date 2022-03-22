@@ -33,7 +33,15 @@ jobs:
 
 ## Authentication
 
-Authentication is done with private app credentials. The same ones you'd use with [Theme Kit](https://shopify.dev/tools/theme-kit/getting-started#step-2-generate-api-credentials).
+Authentication is done with private app credentials. The same ones you'd use with [Theme Kit](https://shopify.dev/tools/theme-kit/getting-started#step-2-generate-api-credentials). If you don't have these, you can follow these steps:
+
+1. Create a Custom App (Shopify store > Apps > Develop Apps for your store > Create an app > Call it something descriptive)
+2. On the Custom App you created: go to API Credentials and grab the _Admin API access token_ and the _API secret key_. Ignore the API key.
+3. On your GitHub Secrets add the following secrets:
+      * SHOP_APP_ID: this is the _Admin API access token_ from the custom app
+      * SHOP_APP_PASSWORD: this is the _API secret key_ from the custom app
+4. In Configuration settings, tick the following access scopes: `read_product_listings`, `read_products`, `write_themes` and `read_themes`.
+5. Install the app using the green button in the top right corner.
 
 You will need to provide the `app_id`, `app_password` and `store` as parameters to the GitHub action. It is recommended to set these as [GitHub secrets](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-an-environment) on your repo.
 
