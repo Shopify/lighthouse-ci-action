@@ -51,7 +51,7 @@ Authentication is done with [Custom App access tokens](https://shopify.dev/apps/
 The `shopify/lighthouse-ci-action` accepts the following arguments:
 
 * `access_token` - (required) see [Authentication](#authentication)
-* `store` - (required) Shopify store `<domain>.myshopify.com` URL.
+* `store` - (required) Shopify store Admin URL, e.g. `my-store.myshopify.com`.
 * `password` - (optional) For password protected shops
 * `product_handle` - (optional) Product handle to run the product page Lighthouse run on. Defaults to the first product.
 * `theme_root` - (optional) The root folder for the theme files that will be uploaded. Defaults to `.`
