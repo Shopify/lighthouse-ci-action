@@ -18,9 +18,10 @@
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
 
 # Authentication creds
-export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
+export SHOPIFY_CLI_THEME_TOKEN="$INPUT_SHOPIFY_CLI_THEME_TOKEN"
 
 # Authentication creds (deprecated)
+export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
 [[ -n "$INPUT_APP_ID" ]]               && export SHOP_APP_ID="$INPUT_APP_ID"
 [[ -n "$INPUT_APP_PASSWORD" ]]         && export SHOP_APP_PASSWORD="$INPUT_APP_PASSWORD"
 
@@ -34,7 +35,13 @@ export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
 [[ -n "$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY" ]] && export LHCI_MIN_SCORE_ACCESSIBILITY="$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY"
 
 # Add global node bin to PATH (from the Dockerfile)
-export PATH="$PATH:$npm_config_prefix/bin"
+if [[ -n "$SHOPIFY_CLI_THEME_TOKEN" ]]; then
+  # Use Shopify CLI 3.x
+  export PATH="$npm_config_prefix/bin:$PATH"
+else
+  # Use Shopify CLI 2.x
+  export PATH="$PATH:$npm_config_prefix/bin"
+fi
 
 # END of GitHub Action Specific Code
 ####################################################################
@@ -51,12 +58,6 @@ step() {
 	==============================
 	$1
 	EOF
-}
-
-is_installed() {
-  # This works with scripts and programs. For more info, check
-  # http://goo.gl/B9683D
-  type $1 &> /dev/null 2>&1
 }
 
 api_request() {
@@ -118,18 +119,6 @@ cleanup() {
 
 trap 'cleanup $?' EXIT
 
-if ! is_installed lhci; then
-  step "Installing Lighthouse CI"
-  log npm install -g @lhci/cli@0.7.x puppeteer
-  npm install -g @lhci/cli@0.7.x puppeteer
-fi
-
-if ! is_installed shopify; then
-  step "Installing Shopify CLI"
-  log "npm install -g @shopify/cli @shopify/theme"
-  npm install -g @shopify/cli @shopify/theme
-fi
-
 step "Configuring shopify CLI"
 
 # Disable analytics for CLI 2.x
@@ -143,15 +132,13 @@ export SHOPIFY_CLI_NO_ANALYTICS=1
 # Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
 export CI=1
 export SHOPIFY_SHOP="${SHOP_STORE#*(https://|http://)}"
+export SHOPIFY_FLAG_STORE=$SHOPIFY_SHOP
 
 if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
   export SHOPIFY_PASSWORD="$SHOP_ACCESS_TOKEN"
 else
   export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
 fi
-
-# shopify login - You don't need to log in explicitly. If you aren't logged in,
-# then you're prompted to log in when you run a command that requires authentication.
 
 host="https://${SHOP_STORE#*(https://|http://)}"
 theme_root="${THEME_ROOT:-.}"
@@ -163,7 +150,16 @@ log "Will run Lighthouse CI on $host"
 
 step "Creating development theme"
 theme_push_log="$(mktemp)"
-shopify theme push --development --json --path $theme_root > "$theme_push_log" && cat "$theme_push_log"
+if [[ -n "$SHOPIFY_CLI_THEME_TOKEN" ]]; then
+  # Use Shopify CLI 3.x
+  # In 3.x, you don't need to log in explicitly. If you aren't logged in,
+  # then you're prompted to log in when you run a command that requires authentication.
+  shopify theme push --development --json --path "$theme_root" | tee "$theme_push_log"
+else
+  # Use Shopify CLI 2.x
+  shopify login
+  shopify theme push --development --json "$theme_root" | tee "$theme_push_log"
+fi
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
 preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
 
@@ -192,9 +188,11 @@ query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
+
 cat <<- EOF > lighthouserc.yml
 ci:
   collect:
+    chromePath: "$(which chromium)"
     url:
       - "$host/$query_string"
       - "$host/products/$product_handle$query_string"
