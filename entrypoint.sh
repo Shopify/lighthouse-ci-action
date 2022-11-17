@@ -34,12 +34,16 @@ export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
 [[ -n "$INPUT_LHCI_MIN_SCORE_PERFORMANCE" ]]   && export LHCI_MIN_SCORE_PERFORMANCE="$INPUT_LHCI_MIN_SCORE_PERFORMANCE"
 [[ -n "$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY" ]] && export LHCI_MIN_SCORE_ACCESSIBILITY="$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY"
 
+log() {
+  echo "$@" 1>&2
+}
+
 # Add global node bin to PATH (from the Dockerfile)
 if [[ -n "$SHOPIFY_CLI_THEME_TOKEN" ]]; then
-  # Use Shopify CLI 3.x
+  log "Using Shopify CLI 3.x"
   export PATH="$npm_config_prefix/bin:$PATH"
 else
-  # Use Shopify CLI 2.x
+  log "Using Shopify CLI 2.x"
   export PATH="$PATH:$npm_config_prefix/bin"
 fi
 
@@ -48,10 +52,6 @@ fi
 
 # Portable code below
 set -eou pipefail
-
-log() {
-  echo "$@" 1>&2
-}
 
 step() {
   cat <<-EOF 1>&2
