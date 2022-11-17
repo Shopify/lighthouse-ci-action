@@ -10,7 +10,7 @@
 # delete the code below. Everything else is platform independent.
 #
 # Here, we're translating the GitHub action input arguments into environment variables
-# for this scrip to use.
+# for this script to use.
 [[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_PASSWORD" ]]          && export SHOP_PASSWORD="$INPUT_PASSWORD"
 [[ -n "$INPUT_PRODUCT_HANDLE" ]]    && export SHOP_PRODUCT_HANDLE="$INPUT_PRODUCT_HANDLE"
