@@ -23,13 +23,13 @@ jobs:
             access_token: ''
             password: ''
 
-          - job_name: 'staff store, Theme Access app login'
-            store: shimmering-islands.myshopify.com
-            app_id: ''
-            app_password: ''
-            access_token: ''
-            password: ''
-            shopify_cli_theme_token: '........' # TODO: enter!
+          # - job_name: 'staff store, Theme Access app login'
+          #   store: shimmering-islands.myshopify.com
+          #   app_id: ''
+          #   app_password: ''
+          #   access_token: ''
+          #   password: ''
+          #   shopify_cli_theme_token: '........' # TODO: enter!
 
           - job_name: 'dev store, custom app login'
             store: cpclermont-dev-store.myshopify.com
@@ -45,13 +45,13 @@ jobs:
             access_token: ''
             password: DEV_PASSWORD
 
-          - job_name: 'dev store, Theme Access app login'
-            store: cpclermont-dev-store.myshopify.com
-            app_id: ''
-            app_password: ''
-            access_token: ''
-            password: ''
-            shopify_cli_theme_token: '........' # TODO: enter!
+          # - job_name: 'dev store, Theme Access app login'
+          #   store: cpclermont-dev-store.myshopify.com
+          #   app_id: ''
+          #   app_password: ''
+          #   access_token: ''
+          #   password: ''
+          #   shopify_cli_theme_token: '........' # TODO: enter!
 
     name: ${{ matrix.job_name }}
 
@@ -63,7 +63,7 @@ jobs:
           path: "./dawn"
 
       - name: Lighthouse CI action
-        # docker://ghcr.io/OWNER/IMAGE_NAME
+        # uses: docker://ghcr.io/shopify/lighthouse-ci-action:1.1.0
         uses: docker://cpclermont/lighthouse-ci-action:1.0.0
         id: lighthouse-ci-action
         with:
