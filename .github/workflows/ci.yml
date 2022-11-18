@@ -64,7 +64,7 @@ jobs:
 
       - name: Lighthouse CI action
         # docker://ghcr.io/OWNER/IMAGE_NAME
-        uses: docker://cpclermont/lighthouse-ci-action
+        uses: docker://cpclermont/lighthouse-ci-action:1.0.0
         id: lighthouse-ci-action
         with:
           entrypoint: ./entrypoint.sh
