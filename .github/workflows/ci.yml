@@ -23,6 +23,14 @@ jobs:
             access_token: ''
             password: ''
 
+          - job_name: 'staff store, Theme Access app login'
+            store: shimmering-islands.myshopify.com
+            app_id: ''
+            app_password: ''
+            access_token: ''
+            password: ''
+            shopify_cli_theme_token: '........' # TODO: enter!
+
           - job_name: 'dev store, custom app login'
             store: cpclermont-dev-store.myshopify.com
             app_id: ''
@@ -37,6 +45,14 @@ jobs:
             access_token: ''
             password: DEV_PASSWORD
 
+          - job_name: 'dev store, Theme Access app login'
+            store: cpclermont-dev-store.myshopify.com
+            app_id: ''
+            app_password: ''
+            access_token: ''
+            password: ''
+            shopify_cli_theme_token: '........' # TODO: enter!
+
     name: ${{ matrix.job_name }}
 
     steps:
@@ -47,9 +63,11 @@ jobs:
           path: "./dawn"
 
       - name: Lighthouse CI action
-        uses: ./
+        # docker://ghcr.io/OWNER/IMAGE_NAME
+        uses: docker://cpclermont/lighthouse-ci-action
         id: lighthouse-ci-action
         with:
+          entrypoint: ./entrypoint.sh
           app_id: ${{ secrets[matrix.app_id] }}
           app_password: ${{ secrets[matrix.app_password] }}
           access_token: ${{ secrets[matrix.access_token] }}
