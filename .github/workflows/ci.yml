@@ -63,11 +63,9 @@ jobs:
           path: "./dawn"
 
       - name: Lighthouse CI action
-        # uses: docker://ghcr.io/shopify/lighthouse-ci-action:1.1.0
-        uses: docker://cpclermont/lighthouse-ci-action:1.0.0
+        uses: ./
         id: lighthouse-ci-action
         with:
-          entrypoint: ./entrypoint.sh
           app_id: ${{ secrets[matrix.app_id] }}
           app_password: ${{ secrets[matrix.app_password] }}
           access_token: ${{ secrets[matrix.access_token] }}
