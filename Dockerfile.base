@@ -10,7 +10,7 @@ RUN apt-get update \
     && git -C "$(rbenv root)"/plugins/ruby-build pull \
     && rbenv install 2.7.1 \
     && rbenv global 2.7.1 \
-    && gem install shopify-cli -N
+    && npm install -g @shopify/cli @shopify/theme
 
 ###
 # Chrome in Docker fix
