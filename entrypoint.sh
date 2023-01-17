@@ -184,7 +184,7 @@ else
 fi
 
 echo "K actually wtf"
-echo which shopify
+echo $(which shopify)
 
 shopify login
 
