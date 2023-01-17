@@ -150,14 +150,14 @@ trap 'cleanup $?' EXIT
 
 if ! is_installed lhci; then
   step "Installing Lighthouse CI"
-  log npm install -g @lhci/cli@0.7.x puppeteer
-  npm install -g @lhci/cli@0.7.x puppeteer
+  log "sudo npm install -g @lhci/cli@0.7.x puppeteer"
+  sudo npm install -g @lhci/cli@0.7.x puppeteer
 fi
 
 if ! is_installed shopify; then
   step "Installing Shopify CLI"
   log "sudo npm install -g @shopify/cli @shopify/theme"
-  npm install -g @shopify/cli @shopify/theme
+  sudo npm install -g @shopify/cli @shopify/theme
 fi
 
 step "Configuring shopify CLI"
