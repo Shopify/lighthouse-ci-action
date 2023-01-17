@@ -177,13 +177,13 @@ export SHOPIFY_FLAG_STORE=$SHOPIFY_SHOP
 export SHOPIFY_CLI_THEME_TOKEN=$SHOP_ACCESS_TOKEN
 export SHOPIFY_CLI_TTY=0
 
-# if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
-#   export SHOPIFY_PASSWORD="$SHOP_ACCESS_TOKEN"
-# else
-#   export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
-# fi
+if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
+  export SHOPIFY_PASSWORD="$SHOP_ACCESS_TOKEN"
+else
+  export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
+fi
 
-# shopify login
+shopify login
 
 # host="https://${SHOP_STORE#*(https://|http://)}"
 # theme_root="${THEME_ROOT:-.}"
