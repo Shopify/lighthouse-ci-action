@@ -1,35 +1,30 @@
-FROM node:14-buster
-
-# Make sure we don't have v2 CLI installed
-RUN echo "remove..."
-RUN apt remove shopify-cli
-RUN gem uninstall shopify-cli
+FROM ruby:3
 
 # Install dependencies
 RUN apt-get update \
-    && apt-get -y install sudo jq
+  && apt-get -y install sudo jq chromium
 
-# Make sure we don't have v2 CLI installed
-RUN echo "remove..."
-RUN apt remove shopify-cli
-RUN gem uninstall shopify-cli
+# Use latest bundler version so that Shopify CLI does not complain
+RUN gem install bundler -N
 
-###
-# Chrome in Docker fix
-# Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
-# Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer installs, work.
-RUN apt-get update \
-    && apt-get install -y wget gnupg \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+# Install Shopify CLI 2.x
+RUN gem install shopify-cli -N
 
-ENV npm_config_prefix="$GITHUB_WORKSPACE/.node"
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install -y nodejs
+
+# See https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#global-npm-dependencies
+# for reasons why we need to set `npm_config_prefix`.
+ENV npm_config_prefix="${GITHUB_WORKSPACE:-/home}/.node"
 ENV PATH="$npm_config_prefix:${PATH}"
-RUN mkdir -p "$npm_config_prefix" \
-  && chmod -R 777 "$npm_config_prefix" \
-  && umask 000 \
-  && npm install -g @lhci/cli@0.8.x puppeteer
+
+# Install Shopify CLI 3.x
+RUN npm install -g @shopify/cli @shopify/theme puppeteer @lhci/cli
+
+# Chrome in Docker fix
+# Install latest fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
+# Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer installs, work.
+RUN apt-get install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
+  --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/*
