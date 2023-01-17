@@ -157,7 +157,7 @@ fi
 if ! is_installed shopify; then
   step "Installing Shopify CLI"
   log "gem install shopify"
-  gem install shopify
+  # gem install shopify
 fi
 
 step "Configuring shopify CLI"
