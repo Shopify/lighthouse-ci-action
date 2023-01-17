@@ -156,8 +156,8 @@ fi
 
 if ! is_installed shopify; then
   step "Installing Shopify CLI"
-  log "gem install shopify"
-  # gem install shopify
+  log "sudo npm install -g @shopify/cli @shopify/theme"
+  npm install -g @shopify/cli @shopify/theme
 fi
 
 step "Configuring shopify CLI"
