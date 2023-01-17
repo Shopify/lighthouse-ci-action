@@ -1,5 +1,8 @@
 FROM node:14-buster
 
+# Make sure we don't have v2 CLI installed
+RUN apt remove shopify-cli
+
 # Install dependencies
 RUN apt-get update \
     && apt-get -y install sudo jq
