@@ -183,6 +183,9 @@ else
   export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
 fi
 
+echo "K actually wtf"
+echo which shopify
+
 shopify login
 
 # host="https://${SHOP_STORE#*(https://|http://)}"
