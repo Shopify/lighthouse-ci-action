@@ -47,36 +47,6 @@ step() {
 	EOF
 }
 
-with_backoff() {
-  local max_attempts=${ATTEMPTS-5}
-  local timeout=${TIMEOUT-1}
-  local attempt=0
-  local exit_code=0
-
-  while [[ $attempt < $max_attempts ]]
-  do
-    "$@"
-    exit_code=$?
-
-    if [[ $exit_code == 0 ]]
-    then
-      break
-    fi
-
-    echo "Failure! Retrying in $timeout.." 1>&2
-    sleep $timeout
-    attempt=$(( attempt + 1 ))
-    timeout=$(( timeout * 2 ))
-  done
-
-  if [[ $exit_code != 0 ]]
-  then
-    echo "Exceeded max attempts ($@)" 1>&2
-  fi
-
-  return $exit_code
-}
-
 is_installed() {
   # This works with scripts and programs. For more info, check
   # http://goo.gl/B9683D
@@ -169,15 +139,14 @@ log "Will run Lighthouse CI on $host"
 step "Creating development theme"
 theme_push_log="$(mktemp)"
 
-with_backoff shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
+shopify theme push --development --path=$theme_root > "$theme_push_log"
 
-preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
-editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
-preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
+cat "$theme_push_log"
 
-echo "preview_url=$preview_url" >> $GITHUB_ENV
-echo "editor_url=$editor_url" >> $GITHUB_ENV
-echo "theme_id=$preview_id" >> $GITHUB_ENV
+if [ $? -eq 1 ]; then
+  echo "Error pushing theme" >&2
+  exit 1
+fi
 
 step "Configuring Lighthouse CI"
 
