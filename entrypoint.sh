@@ -11,18 +11,12 @@
 #
 # Here, we're translating the GitHub action input arguments into environment variables
 # for this script to use.
+[[ -n "$INPUT_THEME_TOKEN" ]]       && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN"
 [[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_PASSWORD" ]]          && export SHOP_PASSWORD="$INPUT_PASSWORD"
 [[ -n "$INPUT_PRODUCT_HANDLE" ]]    && export SHOP_PRODUCT_HANDLE="$INPUT_PRODUCT_HANDLE"
 [[ -n "$INPUT_COLLECTION_HANDLE" ]] && export SHOP_COLLECTION_HANDLE="$INPUT_COLLECTION_HANDLE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
-
-# Authentication creds
-export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
-
-# Authentication creds (deprecated)
-[[ -n "$INPUT_APP_ID" ]]               && export SHOP_APP_ID="$INPUT_APP_ID"
-[[ -n "$INPUT_APP_PASSWORD" ]]         && export SHOP_APP_PASSWORD="$INPUT_APP_PASSWORD"
 
 # Optional, these are used by Lighthouse CI to add pass/fail checks on
 # the GitHub Pull Request.
@@ -95,20 +89,11 @@ api_request() {
   local out="$(mktemp)"
 
   set +e
-  if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
-    curl -sS -f -X GET \
-      "$url" \
-      -H "X-Shopify-Access-Token: ${SHOP_ACCESS_TOKEN}" \
-      1> "$out" \
-      2> "$err"
-  else
-    local username="$SHOP_APP_ID"
-    local password="$SHOP_APP_PASSWORD"
-    curl -sS -f -X GET \
-      -u "$username:$password" "$url" \
-      1> "$out" \
-      2> "$err"
-  fi
+  curl -sS -f -X GET \
+    "$url" \
+    -H "X-Shopify-Access-Token: ${SHOP_THEME_TOKEN}" \
+    1> "$out" \
+    2> "$err"
   set -e
 
   local exit_code="$?"
@@ -150,14 +135,14 @@ trap 'cleanup $?' EXIT
 
 if ! is_installed lhci; then
   step "Installing Lighthouse CI"
-  log "sudo npm install -g @lhci/cli@0.7.x puppeteer"
-  sudo npm install -g @lhci/cli@0.7.x puppeteer
+  log npm install -g @lhci/cli@0.7.x puppeteer
+  npm install -g @lhci/cli@0.7.x puppeteer
 fi
 
 if ! is_installed shopify; then
   step "Installing Shopify CLI"
-  log "sudo npm install -g @shopify/cli @shopify/theme"
-  sudo npm install -g @shopify/cli @shopify/theme
+  log "gem install shopify"
+  gem install shopify
 fi
 
 step "Configuring shopify CLI"
@@ -170,121 +155,107 @@ YAML
 
 # Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
 export CI=1
-export SHOPIFY_SHOP="${SHOP_STORE#*(https://|http://)}"
-
-# WIP CLI v3
-export SHOPIFY_FLAG_STORE=$SHOPIFY_SHOP
-export SHOPIFY_CLI_THEME_TOKEN=$SHOP_ACCESS_TOKEN
 export SHOPIFY_CLI_TTY=0
+export SHOPIFY_FLAG_STORE="${SHOP_STORE#*(https://|http://)}"
+export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
-if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
-  export SHOPIFY_PASSWORD="$SHOP_ACCESS_TOKEN"
+host="https://${SHOP_STORE#*(https://|http://)}"
+theme_root="${THEME_ROOT:-.}"
+
+# Use the $SHOP_PASSWORD defined as a Github Secret for password protected stores.
+[[ -z ${SHOP_PASSWORD+x} ]] && shop_password='' || shop_password="$SHOP_PASSWORD"
+
+log "Will run Lighthouse CI on $host"
+
+step "Creating development theme"
+theme_push_log="$(mktemp)"
+
+with_backoff shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
+
+preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
+editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
+preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
+
+echo "preview_url=$preview_url" >> $GITHUB_ENV
+echo "editor_url=$editor_url" >> $GITHUB_ENV
+echo "theme_id=$preview_id" >> $GITHUB_ENV
+
+step "Configuring Lighthouse CI"
+
+if [[ -n "${SHOP_PRODUCT_HANDLE+x}" ]]; then
+  product_handle="$SHOP_PRODUCT_HANDLE"
 else
-  export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
+  log "Fetching product handle"
+  product_response="$(api_request "$host/admin/api/2021-04/products.json?published_status=published&limit=1")"
+  product_handle="$(echo "$product_response" | jq -r '.products[0].handle')"
+  log "Using $product_handle"
 fi
 
-echo "K actually wtf"
-echo $(which shopify)
+if [[ -n "${SHOP_COLLECTION_HANDLE+x}" ]]; then
+  collection_handle="$SHOP_COLLECTION_HANDLE"
+else
+  log "Fetching collection handle"
+  collection_response="$(api_request "$host/admin/api/2021-04/custom_collections.json?published_status=published&limit=1")"
+  collection_handle="$(echo "$collection_response" | jq -r '.custom_collections[0].handle')"
+  log "Using $collection_handle"
+fi
 
-shopify login
+# Disable redirects + preview bar
+query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
+min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
+min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
-# host="https://${SHOP_STORE#*(https://|http://)}"
-# theme_root="${THEME_ROOT:-.}"
+cat <<- EOF > lighthouserc.yml
+ci:
+  collect:
+    url:
+      - "$host/$query_string"
+      - "$host/products/$product_handle$query_string"
+      - "$host/collections/$collection_handle$query_string"
+    puppeteerScript: './setPreviewCookies.js'
+    puppeteerLaunchOptions:
+      args:
+        - "--no-sandbox"
+        - "--disable-setuid-sandbox"
+        - "--disable-dev-shm-usage"
+        - "--disable-gpu"
+  upload:
+    target: temporary-public-storage
+  assert:
+    assertions:
+      "categories:performance":
+        - error
+        - minScore: $min_score_performance
+          aggregationMethod: median-run
+      "categories:accessibility":
+        - error
+        - minScore: $min_score_accessibility
+          aggregationMethod: median-run
+EOF
 
-# # Use the $SHOP_PASSWORD defined as a Github Secret for password protected stores.
-# [[ -z ${SHOP_PASSWORD+x} ]] && shop_password='' || shop_password="$SHOP_PASSWORD"
+cat <<-EOF > setPreviewCookies.js
+module.exports = async (browser) => {
+  // launch browser for LHCI
+  console.error('Getting a new page...');
+  const page = await browser.newPage();
+  // Get password cookie if password is set
+  if ('$shop_password' !== '') {
+    console.error('Getting password cookie...');
+    await page.goto('$host/password$query_string');
+    await page.waitForSelector('form[action*=password] input[type="password"]');
+    await page.\$eval('form[action*=password] input[type="password"]', input => input.value = '$shop_password');
+    await Promise.all([
+      page.waitForNavigation(),
+      page.\$eval('form[action*=password]', form => form.submit()),
+    ])
+  }
+  // Get preview cookie
+  console.error('Getting preview cookie...');
+  await page.goto('$preview_url');
+  // close session for next run
+  await page.close();
+};
+EOF
 
-# log "Will run Lighthouse CI on $host"
-
-# step "Creating development theme"
-# theme_push_log="$(mktemp)"
-
-# with_backoff shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
-
-# preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
-# editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
-# preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
-
-# echo "preview_url=$preview_url" >> $GITHUB_ENV
-# echo "editor_url=$editor_url" >> $GITHUB_ENV
-# echo "theme_id=$preview_id" >> $GITHUB_ENV
-
-# step "Configuring Lighthouse CI"
-
-# if [[ -n "${SHOP_PRODUCT_HANDLE+x}" ]]; then
-#   product_handle="$SHOP_PRODUCT_HANDLE"
-# else
-#   log "Fetching product handle"
-#   product_response="$(api_request "$host/admin/api/2021-04/products.json?published_status=published&limit=1")"
-#   product_handle="$(echo "$product_response" | jq -r '.products[0].handle')"
-#   log "Using $product_handle"
-# fi
-
-# if [[ -n "${SHOP_COLLECTION_HANDLE+x}" ]]; then
-#   collection_handle="$SHOP_COLLECTION_HANDLE"
-# else
-#   log "Fetching collection handle"
-#   collection_response="$(api_request "$host/admin/api/2021-04/custom_collections.json?published_status=published&limit=1")"
-#   collection_handle="$(echo "$collection_response" | jq -r '.custom_collections[0].handle')"
-#   log "Using $collection_handle"
-# fi
-
-# # Disable redirects + preview bar
-# query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
-# min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
-# min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
-
-# cat <<- EOF > lighthouserc.yml
-# ci:
-#   collect:
-#     url:
-#       - "$host/$query_string"
-#       - "$host/products/$product_handle$query_string"
-#       - "$host/collections/$collection_handle$query_string"
-#     puppeteerScript: './setPreviewCookies.js'
-#     puppeteerLaunchOptions:
-#       args:
-#         - "--no-sandbox"
-#         - "--disable-setuid-sandbox"
-#         - "--disable-dev-shm-usage"
-#         - "--disable-gpu"
-#   upload:
-#     target: temporary-public-storage
-#   assert:
-#     assertions:
-#       "categories:performance":
-#         - error
-#         - minScore: $min_score_performance
-#           aggregationMethod: median-run
-#       "categories:accessibility":
-#         - error
-#         - minScore: $min_score_accessibility
-#           aggregationMethod: median-run
-# EOF
-
-# cat <<-EOF > setPreviewCookies.js
-# module.exports = async (browser) => {
-#   // launch browser for LHCI
-#   console.error('Getting a new page...');
-#   const page = await browser.newPage();
-#   // Get password cookie if password is set
-#   if ('$shop_password' !== '') {
-#     console.error('Getting password cookie...');
-#     await page.goto('$host/password$query_string');
-#     await page.waitForSelector('form[action*=password] input[type="password"]');
-#     await page.\$eval('form[action*=password] input[type="password"]', input => input.value = '$shop_password');
-#     await Promise.all([
-#       page.waitForNavigation(),
-#       page.\$eval('form[action*=password]', form => form.submit()),
-#     ])
-#   }
-#   // Get preview cookie
-#   console.error('Getting preview cookie...');
-#   await page.goto('$preview_url');
-#   // close session for next run
-#   await page.close();
-# };
-# EOF
-
-# step "Running Lighthouse CI"
-# lhci autorun
+step "Running Lighthouse CI"
+lhci autorun
