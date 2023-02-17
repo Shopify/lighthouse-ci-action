@@ -12,7 +12,7 @@ RUN apt-get update \
     && rbenv global 2.7.5
 
 # Install ruby deps
-RUN gem install bundler && gem install shopify-cli -N
+RUN gem install bundler
 
 ###
 # Chrome in Docker fix
