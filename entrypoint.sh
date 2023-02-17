@@ -154,7 +154,6 @@ enabled = false
 YAML
 
 # Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
-export CI=1
 export SHOPIFY_CLI_TTY=0
 export SHOPIFY_FLAG_STORE="${SHOP_STORE#*(https://|http://)}"
 export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
