@@ -1,6 +1,6 @@
 USER_NAME := invisiblethemes
 PROJECT_NAME := $(USER_NAME)/gha-lighthouse-ci
-VERSION := 1.0.1
+VERSION := 2.0.0
 GITSHA:= $(shell echo $$(git describe --always --long --dirty))
 
 export GITSHA
