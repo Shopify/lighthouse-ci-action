@@ -1,6 +1,6 @@
 USER_NAME := shopify
-PROJECT_NAME := $(USER_NAME)/lighthouse-ci-action
-VERSION := 1.1.0
+PROJECT_NAME := $(USER_NAME)/gha-lighthouse-ci
+VERSION := 2.0.0
 GITSHA := $(shell echo $$(git describe --always --long --dirty))
 DOCKER_COMMAND := podman
 PACKAGE_REGISTRY_URL := ghcr.io
