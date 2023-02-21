@@ -136,11 +136,11 @@ step "Creating development theme"
 
 theme_push_log="$(mktemp)"
 
-theme_command="shopify theme push --development --path=$theme_root --json > "$theme_push_log" && cat "$theme_push_log""
+command="shopify theme push --development --path=$theme_root --json | tee $theme_push_log"
 
-log $theme_command
+log $command
 
-eval $theme_command
+eval $command
 
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
 editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
