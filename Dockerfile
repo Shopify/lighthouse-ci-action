@@ -1,3 +1,3 @@
-FROM invisiblethemes/gha-shopify-cli:1.0.2
+FROM invisiblethemes/gha-lighthouse-ci:2.0.0
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
