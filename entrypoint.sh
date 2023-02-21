@@ -125,15 +125,18 @@ theme_root="${THEME_ROOT:-.}"
 log "Will run Lighthouse CI on $host"
 
 step "Creating development theme"
+
 theme_push_log="$(mktemp)"
 
-shopify theme push --development --path=$theme_root > "$theme_push_log"
+theme_command="shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log""
+
+log theme_command
+
+eval theme_command
 
 preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
 editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
 preview_id="$(echo "$editor_url" | sed -n 's/.*themes\/\([0-9]*\)\/editor.*/\1/p')"
-
-cat "$theme_push_log"
 
 if [ $? -eq 1 ]; then
   echo "Error pushing theme" >&2
