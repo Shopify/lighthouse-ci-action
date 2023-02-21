@@ -143,9 +143,7 @@ log $command
 eval $command
 
 # Extract JSON from shopify CLI output
-json_output=$(grep -oE '{.*}' $theme_push_log)
-
-echo "Output: $json_output"
+json_output="$(cat $theme_push_log | grep -o '{.*}')"
 
 preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
 editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
