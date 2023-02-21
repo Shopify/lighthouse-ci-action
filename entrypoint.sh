@@ -104,8 +104,8 @@ cleanup() {
 trap 'cleanup $?' EXIT
 
 if ! is_installed lhci; then
-  echo "lhci is not installed" >&2
-  exit 1
+  step "lhci is not installed, installing..."
+  npm install -g @lhci/cli@0.10.x puppeteer
 fi
 
 if ! is_installed shopify; then
@@ -140,9 +140,9 @@ theme_push_log="$(mktemp)"
 
 theme_command="shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log""
 
-log theme_command
+log $theme_command
 
-eval theme_command
+eval $theme_command
 
 preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
 editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
