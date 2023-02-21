@@ -103,10 +103,8 @@ cleanup() {
 
 trap 'cleanup $?' EXIT
 
-if ! is_installed lhci; then
-  step "lhci is not installed, installing..."
-  npm install -g @lhci/cli@0.10.x puppeteer
-fi
+log npm install -g @lhci/cli@0.10.x puppeteer
+npm install -g @lhci/cli@0.10.x puppeteer
 
 if ! is_installed shopify; then
   echo "shopify cli is not installed" >&2
