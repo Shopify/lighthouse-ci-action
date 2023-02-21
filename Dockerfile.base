@@ -1,16 +1,4 @@
-FROM node:14-buster
-
-ENV PATH="/root/.rbenv/shims:${PATH}"
-
-# Install dependencies
-RUN apt-get update \
-    && apt-get -y install sudo jq rbenv \
-    && mkdir -p "$(rbenv root)"/plugins \
-    && git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build \
-    && git -C "$(rbenv root)"/plugins/ruby-build pull \
-    && rbenv install 2.7.1 \
-    && rbenv global 2.7.1 \
-    && gem install shopify-cli -N
+FROM invisiblethemes/gha-shopify-cli:1.0.2
 
 ###
 # Chrome in Docker fix
@@ -30,4 +18,4 @@ ENV PATH="$npm_config_prefix:${PATH}"
 RUN mkdir -p "$npm_config_prefix" \
   && chmod -R 777 "$npm_config_prefix" \
   && umask 000 \
-  && npm install -g @lhci/cli@0.8.x puppeteer
+  && npm install -g @lhci/cli@0.10.x puppeteer

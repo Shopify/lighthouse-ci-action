@@ -11,18 +11,12 @@
 #
 # Here, we're translating the GitHub action input arguments into environment variables
 # for this script to use.
+[[ -n "$INPUT_THEME_TOKEN" ]]       && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN"
 [[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_PASSWORD" ]]          && export SHOP_PASSWORD="$INPUT_PASSWORD"
 [[ -n "$INPUT_PRODUCT_HANDLE" ]]    && export SHOP_PRODUCT_HANDLE="$INPUT_PRODUCT_HANDLE"
 [[ -n "$INPUT_COLLECTION_HANDLE" ]] && export SHOP_COLLECTION_HANDLE="$INPUT_COLLECTION_HANDLE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
-
-# Authentication creds
-export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
-
-# Authentication creds (deprecated)
-[[ -n "$INPUT_APP_ID" ]]               && export SHOP_APP_ID="$INPUT_APP_ID"
-[[ -n "$INPUT_APP_PASSWORD" ]]         && export SHOP_APP_PASSWORD="$INPUT_APP_PASSWORD"
 
 # Optional, these are used by Lighthouse CI to add pass/fail checks on
 # the GitHub Pull Request.
@@ -53,36 +47,6 @@ step() {
 	EOF
 }
 
-with_backoff() {
-  local max_attempts=${ATTEMPTS-5}
-  local timeout=${TIMEOUT-1}
-  local attempt=0
-  local exit_code=0
-
-  while [[ $attempt < $max_attempts ]]
-  do
-    "$@"
-    exit_code=$?
-
-    if [[ $exit_code == 0 ]]
-    then
-      break
-    fi
-
-    echo "Failure! Retrying in $timeout.." 1>&2
-    sleep $timeout
-    attempt=$(( attempt + 1 ))
-    timeout=$(( timeout * 2 ))
-  done
-
-  if [[ $exit_code != 0 ]]
-  then
-    echo "Exceeded max attempts ($@)" 1>&2
-  fi
-
-  return $exit_code
-}
-
 is_installed() {
   # This works with scripts and programs. For more info, check
   # http://goo.gl/B9683D
@@ -95,20 +59,11 @@ api_request() {
   local out="$(mktemp)"
 
   set +e
-  if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
-    curl -sS -f -X GET \
-      "$url" \
-      -H "X-Shopify-Access-Token: ${SHOP_ACCESS_TOKEN}" \
-      1> "$out" \
-      2> "$err"
-  else
-    local username="$SHOP_APP_ID"
-    local password="$SHOP_APP_PASSWORD"
-    curl -sS -f -X GET \
-      -u "$username:$password" "$url" \
-      1> "$out" \
-      2> "$err"
-  fi
+  curl -sS -f -X GET \
+    "$url" \
+    -H "X-Shopify-Access-Token: ${SHOP_THEME_TOKEN}" \
+    1> "$out" \
+    2> "$err"
   set -e
 
   local exit_code="$?"
@@ -148,16 +103,12 @@ cleanup() {
 
 trap 'cleanup $?' EXIT
 
-if ! is_installed lhci; then
-  step "Installing Lighthouse CI"
-  log npm install -g @lhci/cli@0.7.x puppeteer
-  npm install -g @lhci/cli@0.7.x puppeteer
-fi
+log npm install -g @lhci/cli@0.10.x puppeteer
+npm install -g @lhci/cli@0.10.x puppeteer
 
 if ! is_installed shopify; then
-  step "Installing Shopify CLI"
-  log "gem install shopify"
-  gem install shopify
+  echo "shopify cli is not installed" >&2
+  exit 1
 fi
 
 step "Configuring shopify CLI"
@@ -169,16 +120,9 @@ enabled = false
 YAML
 
 # Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
-export CI=1
-export SHOPIFY_SHOP="${SHOP_STORE#*(https://|http://)}"
-
-if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
-  export SHOPIFY_PASSWORD="$SHOP_ACCESS_TOKEN"
-else
-  export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
-fi
-
-shopify login
+export SHOPIFY_CLI_TTY=0
+export SHOPIFY_FLAG_STORE="${SHOP_STORE#*(https://|http://)}"
+export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
 host="https://${SHOP_STORE#*(https://|http://)}"
 theme_root="${THEME_ROOT:-.}"
@@ -189,17 +133,26 @@ theme_root="${THEME_ROOT:-.}"
 log "Will run Lighthouse CI on $host"
 
 step "Creating development theme"
+
 theme_push_log="$(mktemp)"
 
-with_backoff shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+command="shopify theme push --development --path=$theme_root --json | tee $theme_push_log"
 
-preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
-editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
-preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
+log $command
 
-echo "preview_url=$preview_url" >> $GITHUB_ENV
-echo "editor_url=$editor_url" >> $GITHUB_ENV
-echo "theme_id=$preview_id" >> $GITHUB_ENV
+eval $command
+
+# Extract JSON from shopify CLI output
+json_output="$(cat $theme_push_log | grep -o '{.*}')"
+
+preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
+editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
+preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
+
+if [ $? -eq 1 ]; then
+  echo "Error pushing theme" >&2
+  exit 1
+fi
 
 step "Configuring Lighthouse CI"
 
