@@ -142,9 +142,12 @@ log $command
 
 eval $command
 
-preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
-editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
-preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
+# Extract JSON from shopify CLI output
+json_output=$(grep -oE '{.*}' $theme_push_log)
+
+preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
+editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
+preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
 
 if [ $? -eq 1 ]; then
   echo "Error pushing theme" >&2
