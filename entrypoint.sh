@@ -136,6 +136,9 @@ step "Creating development theme"
 
 theme_push_log="$(mktemp)"
 
+echo "git config --global --add safe.directory /github/workspace"
+git config --global --add safe.directory /github/workspace
+
 echo "git rev-parse HEAD"
 git rev-parse HEAD
 
