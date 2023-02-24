@@ -1,3 +1,3 @@
-FROM ghcr.io/poitrin/lighthouse-ci-action:1.1.0
+FROM ghcr.io/poitrin/lighthouse-ci-action:latest
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
