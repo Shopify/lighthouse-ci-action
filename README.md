@@ -72,3 +72,7 @@ The following were used to authenticate with private apps.
 
 * `app_id` - (deprecated) Shopify store private app ID.
 * `app_password` - (deprecated) Shopify store private app password.
+
+## Docker Image Registry on GitHub
+
+Docker image is hosted on [GitHub packages](ghcr.io).

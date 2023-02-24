@@ -1,3 +1,3 @@
-FROM cpclermont/lighthouse-ci-action:1.0.0
+FROM ghcr.io/poitrin/lighthouse-ci-action-alternative:1.1.0
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
