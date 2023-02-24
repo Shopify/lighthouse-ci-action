@@ -16,6 +16,7 @@
 [[ -n "$INPUT_PRODUCT_HANDLE" ]]    && export SHOP_PRODUCT_HANDLE="$INPUT_PRODUCT_HANDLE"
 [[ -n "$INPUT_COLLECTION_HANDLE" ]] && export SHOP_COLLECTION_HANDLE="$INPUT_COLLECTION_HANDLE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
+[[ -n "$INPUT_PULL_THEME" ]]        && export SHOP_PULL_THEME="$INPUT_PULL_THEME"
 
 # Authentication creds
 export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
@@ -159,6 +160,12 @@ theme_root="${THEME_ROOT:-.}"
 log "Will run Lighthouse CI on $host"
 
 step "Creating development theme"
+
+if [[ -n "${SHOP_PULL_THEME+x}" ]]; then
+  log "Pulling settings from theme $SHOP_PULL_THEME"
+  shopify theme pull --theme ${SHOP_PULL_THEME} --only templates/*.json --only config/settings_data.json
+fi
+
 theme_push_log="$(mktemp)"
 shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
