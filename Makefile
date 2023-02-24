@@ -1,4 +1,4 @@
-USER_NAME := shopify
+USER_NAME := poitrin
 PROJECT_NAME := $(USER_NAME)/lighthouse-ci-action
 VERSION := 1.1.0
 GITSHA := $(shell echo $$(git describe --always --long --dirty))
