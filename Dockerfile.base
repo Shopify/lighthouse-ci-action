@@ -25,9 +25,8 @@ RUN apt-get update \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-ENV npm_config_prefix="$GITHUB_WORKSPACE/.node"
+# See https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#global-npm-dependencies
+# for reasons why we need to set `npm_config_prefix`.
+ENV npm_config_prefix="${GITHUB_WORKSPACE:-/home}/.node"
 ENV PATH="$npm_config_prefix:${PATH}"
-RUN mkdir -p "$npm_config_prefix" \
-  && chmod -R 777 "$npm_config_prefix" \
-  && umask 000 \
-  && npm install -g @lhci/cli@0.8.x puppeteer
+RUN npm install -g puppeteer @lhci/cli
