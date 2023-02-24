@@ -13,7 +13,7 @@ export VERSION
 # You will need scopes `read:packages`, `write:packages`, `delete:packages`
 
 base: Dockerfile
-	DOCKER_BUILDKIT=1 $(DOCKER_COMMAND) build -t $(PROJECT_NAME):$(VERSION) -t $(PROJECT_NAME):$(GITSHA) - < Dockerfile.base
+	DOCKER_BUILDKIT=1 $(DOCKER_COMMAND) build --platform linux/amd64 -t $(PROJECT_NAME):$(VERSION) -t $(PROJECT_NAME):$(GITSHA) - < Dockerfile.base
 
 login:
 	echo $(CR_PAT) | $(DOCKER_COMMAND) login $(PACKAGE_REGISTRY_URL) -u $(USER_NAME) --password-stdin
