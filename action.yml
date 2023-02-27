@@ -27,7 +27,7 @@ inputs:
     required: false
     default: '.'
   pull_theme:
-    description: 'If provided, the settings and json templates will be pulled into the test theme.'
+    description: 'The ID or name of a theme from which the settings and JSON templates should be pulled. If provided, those settings will be pulled into the development theme.'
     required: false
   lhci_github_app_token:
     description: 'Lighthouse CI GitHub app token'
