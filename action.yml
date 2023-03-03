@@ -26,6 +26,9 @@ inputs:
     description: 'The root folder for the theme files that will be uploaded (default: ".")'
     required: false
     default: '.'
+  pull_theme:
+    description: 'The ID or name of a theme from which the settings and JSON templates should be pulled. If provided, those settings will be pulled into the development theme.'
+    required: false
   lhci_github_app_token:
     description: 'Lighthouse CI GitHub app token'
     required: false

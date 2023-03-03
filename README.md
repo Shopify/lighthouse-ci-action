@@ -56,6 +56,7 @@ The `shopify/lighthouse-ci-action` accepts the following arguments:
 * `product_handle` - (optional) Product handle to run the product page Lighthouse run on. Defaults to the first product.
 * `theme_root` - (optional) The root folder for the theme files that will be uploaded. Defaults to `.`
 * `collection_handle` - (optional) Collection handle to run the product page Lighthouse run on. Defaults to the first collection.
+* `pull_theme` - (optional) The ID or name of a theme from which the settings and JSON templates should be used. If not provided Lighthouse will be run against the theme's default settings.
 * `lhci_min_score_performance` - (optional, default: 0.6) Minimum performance score for a passed audit (must be between 0 and 1).
 * `lhci_min_score_accessibility` - (optional, default: 0.9) Minimum accessibility score for a passed audit
 
