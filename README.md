@@ -42,7 +42,7 @@ Authentication is done with [Custom App access tokens](https://shopify.dev/apps/
 4. Click `Save`.
 5. From the `API credentials` tab, install the app.
 6. Take note of the `Admin API access token`.
-7. Add the following to your repository's [GitHub Secrets](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-an-environment):
+7. Add the following to your repository's [GitHub Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository):
    - `SHOP_ACCESS_TOKEN`: the Admin API access token
    - `SHOP_STORE`: Shopify store `<store>.myshopify.com` URL
 
