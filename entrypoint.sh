@@ -256,4 +256,4 @@ if [[ -n "$INPUT_LHCI_OUTPUT_JSON" ]]; then
   log "Output results"
   ls -la ./.lighthouseci
   cat ./.lighthouseci/*.json
-else
+endif
