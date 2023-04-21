@@ -211,7 +211,9 @@ ci:
         - "--disable-dev-shm-usage"
         - "--disable-gpu"
   upload:
-    target: temporary-public-storage
+    target: 'filesystem'
+    outputDir: './lchi'
+    reportFilenamePattern: "%%PATHNAME%%"
   assert:
     assertions:
       "categories:performance":
@@ -250,13 +252,16 @@ EOF
 
 step "Running Lighthouse CI"
 
-
-
 if [[ -n "$INPUT_LHCI_OUTPUT_JSON" ]]; then
   log "Output results"
   mkdir 'lhci'
   lhci autorun --target=filesystem --outputDir=./lchi --reportFilenamePattern="%%PATHNAME%%"
   ls -la ./lhci
+  for file in lhci/*.json; do
+    echo "Processing $file file..."
+    json_string="$(jq -Rs '.' $file)"
+    echo "$file=$json_string" >> $GITHUB_OUTPUT
+  done
 else
   lhci autorun
 fi
