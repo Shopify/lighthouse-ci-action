@@ -250,10 +250,10 @@ EOF
 
 step "Running Lighthouse CI"
 
+lhci autorun
+
 if [[ -n "$INPUT_LHCI_OUTPUT_JSON" ]]; then
-  log "Saving Lighthouse report to filesystem"
-  lhci autorun --target=filesystem --outputDir="."
-  ls -la
+  log "Output results"
+  ls -la ./.lighthouseci
+  cat ./.lighthouseci/*.json
 else
-  lhci autorun
-fi
