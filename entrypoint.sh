@@ -254,7 +254,7 @@ step "Running Lighthouse CI"
 
 if [[ -n "$INPUT_LHCI_OUTPUT_JSON" ]]; then
   log "Output results"
-  mkdir './lchi'
+  mkdir 'lhci'
   lhci autorun --target=filesystem --outputDir=./lchi --reportFilenamePattern="%%PATHNAME%%"
   ls -la ./lhci
 else
