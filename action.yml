@@ -43,6 +43,10 @@ inputs:
     description: 'Minimum accessibility score'
     required: false
     default: 0.9
+  lhci_output_json:
+    description: 'Output reports as JSON instead of uploading to LHCI temporary public storage'
+    required: false
+    default: false
   app_id:
     description: '(deprecated) Shopify private app ID'
     depreciationMessage: Shopify private apps are deprecated. Use a Custom App `access_token` instead.
@@ -51,6 +55,13 @@ inputs:
     description: '(deprecated) Shopify private app password'
     depreciationMessage: Shopify private apps are deprecated. Use a Custom App `access_token` instead.
     required: false
+outputs:
+  index_template:
+    description: "Index template lighthouse performance score (average of 3 runs)"
+  product_template:
+    description: "Product template lighthouse performance score (average of 3 runs)"
+  collection_template:
+    description: "Collection template lighthouse performance score (average of 3 runs)"
 runs:
   using: 'docker'
   image: 'Dockerfile'

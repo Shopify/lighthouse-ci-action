@@ -249,4 +249,11 @@ module.exports = async (browser) => {
 EOF
 
 step "Running Lighthouse CI"
-lhci autorun
+
+if [[ -n "$INPUT_LHCI_OUTPUT_JSON" ]]; then
+  log "Saving Lighthouse report to filesystem"
+  lhci autorun --target=filesystem --outputDir="."
+  ls -la
+else
+  lhci autorun
+fi
