@@ -56,6 +56,8 @@ inputs:
     depreciationMessage: Shopify private apps are deprecated. Use a Custom App `access_token` instead.
     required: false
 outputs:
+  MANIFEST:
+    description: 'LHCI manifest'
   index_template:
     description: "Index template lighthouse performance score (average of 3 runs)"
   product_template:
