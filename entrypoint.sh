@@ -268,7 +268,8 @@ if [[ -n "$INPUT_LHCI_OUTPUT_JSON" ]]; then
   #   echo "$file=$json_string" >> $GITHUB_OUTPUT
   # done
   json_string="$(jq -Rs '.' ./lhci/manifest.json)"
-  echo "MANIFEST=$json_string" >> $GITHUB_OUTPUT
+  # echo "MANIFEST=$json_string" >> $GITHUB_OUTPUT
+  echo MANIFEST=Hello >> $GITHUB_OUTPUT
   cat $GITHUB_OUTPUT
 else
   lhci autorun
