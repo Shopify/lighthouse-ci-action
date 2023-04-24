@@ -254,19 +254,22 @@ step "Running Lighthouse CI"
 
 if [[ -n "$INPUT_LHCI_OUTPUT_JSON" ]]; then
   log "Output results"
-  mkdir lhci
-  chmod 777 lhci
+  # mkdir lhci
+  # chmod 777 lhci
   lhci autorun --target=filesystem --outputDir=./lhci --reportFilenamePattern="%%PATHNAME%%"
-  pwd
-  log "ls"
-  ls
-  log "ls -la ./lhci"
-  ls -la ./lhci
-  for file in lhci/*.json; do
-    echo "Processing $file file..."
-    json_string="$(jq -Rs '.' $file)"
-    echo "$file=$json_string" >> $GITHUB_OUTPUT
-  done
+  # pwd
+  # log "ls"
+  # ls
+  # log "ls -la ./lhci"
+  # ls -la ./lhci
+  # for file in lhci/*.json; do
+  #   echo "Processing $file file..."
+  #   json_string="$(jq -Rs '.' $file)"
+  #   echo "$file=$json_string" >> $GITHUB_OUTPUT
+  # done
+  cat ./lhci/manifest.json
+  json_string="$(jq -Rs '.' ./lhci/manifest.json)"
+  echo "MANIFEST=$json_string" >> $GITHUB_OUTPUT
 else
   lhci autorun
 fi
