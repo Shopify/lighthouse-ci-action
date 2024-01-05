@@ -54,12 +54,6 @@ step() {
 	EOF
 }
 
-is_installed() {
-  # This works with scripts and programs. For more info, check
-  # http://goo.gl/B9683D
-  type $1 &> /dev/null 2>&1
-}
-
 api_request() {
   local url="$1"
   local err="$(mktemp)"
@@ -118,18 +112,6 @@ cleanup() {
 }
 
 trap 'cleanup $?' EXIT
-
-if ! is_installed lhci; then
-  step "Installing Lighthouse CI"
-  log npm install -g @lhci/cli@0.7.x puppeteer
-  npm install -g @lhci/cli@0.7.x puppeteer
-fi
-
-if ! is_installed shopify; then
-  step "Installing Shopify CLI"
-  log "gem install shopify"
-  gem install shopify
-fi
 
 step "Configuring shopify CLI"
 
