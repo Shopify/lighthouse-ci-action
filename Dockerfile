@@ -8,8 +8,8 @@ RUN apt-get update \
     && mkdir -p "$(rbenv root)"/plugins \
     && git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build \
     && git -C "$(rbenv root)"/plugins/ruby-build pull \
-    && rbenv install 3.1.4 \
-    && rbenv global 3.1.4 \
+    && rbenv install 3.2.0 \
+    && rbenv global 3.2.0 \
     && gem install shopify-cli -N
 
 ###
