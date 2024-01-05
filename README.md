@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lighthouse
-        uses: shopify/lighthouse-ci-action@v1
+        uses: shopify/lighthouse-ci-action@v1.2.0
         with:
           store: ${{ secrets.SHOP_STORE }}
           access_token: ${{ secrets.SHOP_ACCESS_TOKEN }}
