@@ -19,7 +19,7 @@ jobs:
     name: Lighthouse
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Lighthouse
         uses: shopify/lighthouse-ci-action@v1
         with:

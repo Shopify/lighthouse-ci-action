@@ -40,8 +40,8 @@ jobs:
     name: ${{ matrix.job_name }}
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           repository: "shopify/dawn"
           path: "./dawn"
