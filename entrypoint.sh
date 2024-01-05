@@ -181,6 +181,10 @@ query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
+# that's where the browser is installed
+# export PUPPETEER_CACHE_DIR=/root/.cache/puppeteer
+export PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable'
+
 cat <<- EOF > lighthouserc.yml
 ci:
   collect:
