@@ -43,14 +43,6 @@ inputs:
     description: 'Minimum accessibility score'
     required: false
     default: 0.9
-  app_id:
-    description: '(deprecated) Shopify private app ID'
-    depreciationMessage: Shopify private apps are deprecated. Use a Custom App `access_token` instead.
-    required: false
-  app_password:
-    description: '(deprecated) Shopify private app password'
-    depreciationMessage: Shopify private apps are deprecated. Use a Custom App `access_token` instead.
-    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'

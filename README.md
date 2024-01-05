@@ -66,10 +66,3 @@ For the GitHub Status Checks on PR. One of the two arguments is required:
 * `lhci_github_token` - (optional) GitHub personal access token
 
 For more details on the implications of choosing one over the other, refer to the [Lighthouse CI Getting Started Page](https://github.com/GoogleChrome/lighthouse-ci/blob/main/docs/getting-started.md#github-status-checks)
-
-### Deprecated authentication configuration
-
-The following were used to authenticate with private apps.
-
-* `app_id` - (deprecated) Shopify store private app ID.
-* `app_password` - (deprecated) Shopify store private app password.

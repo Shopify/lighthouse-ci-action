@@ -54,12 +54,6 @@ step() {
 	EOF
 }
 
-is_installed() {
-  # This works with scripts and programs. For more info, check
-  # http://goo.gl/B9683D
-  type $1 &> /dev/null 2>&1
-}
-
 api_request() {
   local url="$1"
   local err="$(mktemp)"
@@ -119,18 +113,6 @@ cleanup() {
 
 trap 'cleanup $?' EXIT
 
-if ! is_installed lhci; then
-  step "Installing Lighthouse CI"
-  log npm install -g @lhci/cli@0.7.x puppeteer
-  npm install -g @lhci/cli@0.7.x puppeteer
-fi
-
-if ! is_installed shopify; then
-  step "Installing Shopify CLI"
-  log "gem install shopify"
-  gem install shopify
-fi
-
 step "Configuring shopify CLI"
 
 # Disable analytics
@@ -149,7 +131,10 @@ else
   export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
 fi
 
-shopify login
+export SHOPIFY_FLAG_STORE="$SHOPIFY_SHOP"
+export SHOPIFY_CLI_THEME_TOKEN="$SHOPIFY_PASSWORD"
+export SHOPIFY_CLI_TTY=0
+# shopify auth login
 
 host="https://${SHOP_STORE#*(https://|http://)}"
 theme_root="${THEME_ROOT:-.}"
@@ -167,9 +152,9 @@ if [[ -n "${SHOP_PULL_THEME+x}" ]]; then
 fi
 
 theme_push_log="$(mktemp)"
-shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
-preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
-preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
+shopify theme push --development --json --path $theme_root > "$theme_push_log" && cat "$theme_push_log"
+preview_url="$(cat "$theme_push_log" | jq -r '.theme.preview_url')"
+preview_id="$(cat "$theme_push_log" | jq -r '.theme.id')"
 
 step "Configuring Lighthouse CI"
 
@@ -195,6 +180,12 @@ fi
 query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
+
+# Env vars for puppeteer to work with our chrome install
+# See https://pptr.dev/api/puppeteer.configuration
+# export PUPPETEER_CACHE_DIR=/root/.cache/puppeteer
+export PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable'
+export LHCI_BUILD_CONTEXT__CURRENT_HASH="$GITHUB_SHA"
 
 cat <<- EOF > lighthouserc.yml
 ci:
