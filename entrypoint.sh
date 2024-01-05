@@ -181,9 +181,11 @@ query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
-# that's where the browser is installed
+# Env vars for puppeteer to work with our chrome install
+# See https://pptr.dev/api/puppeteer.configuration
 # export PUPPETEER_CACHE_DIR=/root/.cache/puppeteer
 export PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable'
+export LHCI_BUILD_CONTEXT__CURRENT_HASH="$GITHUB_SHA"
 
 cat <<- EOF > lighthouserc.yml
 ci:
