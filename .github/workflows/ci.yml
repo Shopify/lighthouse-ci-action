@@ -11,30 +11,12 @@ jobs:
         include:
           - job_name: 'staff store, custom app login'
             store: shimmering-islands.myshopify.com
-            app_id: ''
-            app_password: ''
             access_token: SHOP_ACCESS_TOKEN
-            password: ''
-
-          - job_name: 'staff store, private app login'
-            store: shimmering-islands.myshopify.com
-            app_id: SHOP_APP_ID
-            app_password: SHOP_APP_PASSWORD
-            access_token: ''
             password: ''
 
           - job_name: 'dev store, custom app login'
             store: cpclermont-dev-store.myshopify.com
-            app_id: ''
-            app_password: DEV_APP_PASSWORD
             access_token: DEV_ACCESS_TOKEN
-            password: DEV_PASSWORD
-
-          - job_name: 'dev store, private app login'
-            store: cpclermont-dev-store.myshopify.com
-            app_id: DEV_APP_ID
-            app_password: DEV_APP_PASSWORD
-            access_token: ''
             password: DEV_PASSWORD
 
     name: ${{ matrix.job_name }}
@@ -50,8 +32,6 @@ jobs:
         uses: ./
         id: lighthouse-ci-action
         with:
-          app_id: ${{ secrets[matrix.app_id] }}
-          app_password: ${{ secrets[matrix.app_password] }}
           access_token: ${{ secrets[matrix.access_token] }}
           store: ${{ matrix.store }}
           password: ${{ secrets[matrix.password] }}
