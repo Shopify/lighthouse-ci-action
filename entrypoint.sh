@@ -148,7 +148,7 @@ step "Creating development theme"
 
 if [[ -n "${SHOP_PULL_THEME+x}" ]]; then
   log "Pulling settings from theme $SHOP_PULL_THEME"
-  shopify theme pull $theme_root --theme ${SHOP_PULL_THEME} --only templates/*.json --only config/settings_data.json
+  shopify theme pull --path "$theme_root" --theme ${SHOP_PULL_THEME} --only templates/*.json --only config/settings_data.json
 fi
 
 theme_push_log="$(mktemp)"
