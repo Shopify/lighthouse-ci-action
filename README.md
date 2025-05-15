@@ -59,6 +59,7 @@ The `shopify/lighthouse-ci-action` accepts the following arguments:
 * `pull_theme` - (optional) The ID or name of a theme from which the settings and JSON templates should be used. If not provided Lighthouse will be run against the theme's default settings.
 * `lhci_min_score_performance` - (optional, default: 0.6) Minimum performance score for a passed audit (must be between 0 and 1).
 * `lhci_min_score_accessibility` - (optional, default: 0.9) Minimum accessibility score for a passed audit
+* `shop_app_api_frequency` - (optional, default: 2) Frequency at which to perform Shopify API requests. You should override this value to to 4 for Shopify Plus stores.
 
 For the GitHub Status Checks on PR. One of the two arguments is required:
 
