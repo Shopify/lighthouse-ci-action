@@ -32,18 +32,14 @@ jobs:
 
 ## Authentication
 
-Authentication is done with [Custom App access tokens](https://shopify.dev/apps/auth/admin-app-access-tokens).
+Authentication is done with [Theme Access](https://apps.shopify.com/theme-access).
 
-1. [Create the app](https://help.shopify.com/en/manual/apps/custom-apps#create-and-install-a-custom-app).
-2. Click the `Configure Admin API Scopes` button.
-3. Enable the following scopes:
-   - `read_products`
-   - `write_themes`
-4. Click `Save`.
-5. From the `API credentials` tab, install the app.
-6. Take note of the `Admin API access token`.
-7. Add the following to your repository's [GitHub Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository):
+1. Install it in your store 
+2. Generate the theme access token 
+3. Add the following to your repository's [GitHub Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository):
    - `SHOP_ACCESS_TOKEN`: the Admin API access token
+      - Install [Theme Access](https://apps.shopify.com/theme-access) App to your store 
+      - Generate the token and use it
    - `SHOP_STORE`: Shopify store `<store>.myshopify.com` URL
 
 ## Configuration
@@ -59,6 +55,7 @@ The `shopify/lighthouse-ci-action` accepts the following arguments:
 * `pull_theme` - (optional) The ID or name of a theme from which the settings and JSON templates should be used. If not provided Lighthouse will be run against the theme's default settings.
 * `lhci_min_score_performance` - (optional, default: 0.6) Minimum performance score for a passed audit (must be between 0 and 1).
 * `lhci_min_score_accessibility` - (optional, default: 0.9) Minimum accessibility score for a passed audit
+* `delete_theme_after_result` – (optional, default: 0) Deletes the theme that was created after the process completes.(must be 0 or 1)
 
 For the GitHub Status Checks on PR. One of the two arguments is required:
 

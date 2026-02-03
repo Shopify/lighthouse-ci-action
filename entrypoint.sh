@@ -17,6 +17,7 @@
 [[ -n "$INPUT_COLLECTION_HANDLE" ]] && export SHOP_COLLECTION_HANDLE="$INPUT_COLLECTION_HANDLE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
 [[ -n "$INPUT_PULL_THEME" ]]        && export SHOP_PULL_THEME="$INPUT_PULL_THEME"
+[[ -n "$INPUT_DELETE_THEME_AFTER_RESULT" ]]        && export SHOP_DELETE_THEME_AFTER_RESULT="$INPUT_DELETE_THEME_AFTER_RESULT"
 
 # Authentication creds
 export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
@@ -246,3 +247,6 @@ EOF
 
 step "Running Lighthouse CI"
 lhci autorun
+if [ "$SHOP_DELETE_THEME_AFTER_RESULT" = "1" ]; then
+  shopify theme delete --theme ${preview_id} -f
+fi
