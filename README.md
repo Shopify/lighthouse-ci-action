@@ -34,12 +34,10 @@ jobs:
 
 Authentication is done with [Theme Access](https://apps.shopify.com/theme-access).
 
-1. Install it in your store 
-2. Generate the theme access token 
-3. Add the following to your repository's [GitHub Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository):
+1. Install it in your store
+2. Generate the theme access token
+4. Add the following to your repository's [GitHub Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository):
    - `SHOP_ACCESS_TOKEN`: the Admin API access token
-      - Install [Theme Access](https://apps.shopify.com/theme-access) App to your store 
-      - Generate the token and use it
    - `SHOP_STORE`: Shopify store `<store>.myshopify.com` URL
 
 ## Configuration
