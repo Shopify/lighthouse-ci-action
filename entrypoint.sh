@@ -74,9 +74,8 @@ api_request() {
       1> "$out" \
       2> "$err"
   fi
-  set -e
-
   local exit_code="$?"
+  set -e
   local errors="$(cat "$out" | jq '.errors')"
 
   if [[ $exit_code != '0' ]]; then
