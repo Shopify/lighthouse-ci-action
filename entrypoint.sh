@@ -19,7 +19,8 @@
 [[ -n "$INPUT_PULL_THEME" ]]        && export SHOP_PULL_THEME="$INPUT_PULL_THEME"
 
 # Authentication creds
-export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
+[[ -n "$INPUT_CLIENT_ID" ]]     && export SHOP_CLIENT_ID="$INPUT_CLIENT_ID"
+[[ -n "$INPUT_CLIENT_SECRET" ]] && export SHOP_CLIENT_SECRET="$INPUT_CLIENT_SECRET"
 
 # Authentication creds (deprecated)
 [[ -n "$INPUT_APP_ID" ]]               && export SHOP_APP_ID="$INPUT_APP_ID"
@@ -92,6 +93,42 @@ api_request() {
   cat "$out"
 }
 
+fetch_access_token() {
+  local token_response_file
+  token_response_file="$(mktemp)"
+  local token_error_file
+  token_error_file="$(mktemp)"
+
+  # Redirect stderr to prevent client_secret from appearing in logs on failure.
+  # set +e mirrors the pattern in api_request — prevents set -e from killing
+  # the script before our custom error message can run.
+  set +e
+  curl -sS -f -X POST \
+    "https://${SHOPIFY_SHOP}/admin/oauth/access_token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    --data-urlencode "grant_type=client_credentials" \
+    --data-urlencode "client_id=${SHOP_CLIENT_ID}" \
+    --data-urlencode "client_secret=${SHOP_CLIENT_SECRET}" \
+    1> "$token_response_file" \
+    2> "$token_error_file"
+  local exit_code="$?"
+  set -e
+
+  if [[ $exit_code != '0' ]]; then
+    log "Failed to fetch access token. Verify your client_id and client_secret are correct and that your Dev Dashboard app has the required scopes: read_products, write_themes."
+    return 1
+  fi
+
+  local token
+  token="$(jq -r '.access_token' "$token_response_file")"
+  if [[ -z "$token" || "$token" == "null" ]]; then
+    log "Failed to fetch access token: response did not contain a valid token. Verify your Dev Dashboard app has the required scopes: read_products, write_themes."
+    return 1
+  fi
+
+  echo "$token"
+}
+
 cleanup() {
   if [[ -n "${theme+x}" ]]; then
     step "Disposing development theme"
@@ -124,11 +161,25 @@ YAML
 export CI=1
 export SHOPIFY_SHOP="${SHOP_STORE#*(https://|http://)}"
 
-if [[ -n "$SHOP_ACCESS_TOKEN" ]]; then
-  export SHOPIFY_PASSWORD="$SHOP_ACCESS_TOKEN"
+# Resolve access token — prefer client_id/client_secret (Dev Dashboard apps),
+# fall back to static access_token (legacy custom apps)
+if [[ -n "${SHOP_CLIENT_ID:-}" && -n "${SHOP_CLIENT_SECRET:-}" ]]; then
+  if [[ -n "${INPUT_ACCESS_TOKEN:-}" ]]; then
+    log "WARNING: Both access_token and client_id/client_secret were provided. Using client_id/client_secret."
+  fi
+  SHOP_ACCESS_TOKEN="$(fetch_access_token)"
+  export SHOP_ACCESS_TOKEN
+elif [[ -n "${SHOP_CLIENT_ID:-}" || -n "${SHOP_CLIENT_SECRET:-}" ]]; then
+  log "Error: Both client_id and client_secret are required for Dev Dashboard app authentication."
+  exit 1
+elif [[ -n "${INPUT_ACCESS_TOKEN:-}" ]]; then
+  export SHOP_ACCESS_TOKEN="$INPUT_ACCESS_TOKEN"
 else
-  export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
+  log "Error: Authentication required. Provide either (client_id + client_secret) for a Dev Dashboard app, or access_token for a legacy custom app."
+  exit 1
 fi
+
+export SHOPIFY_PASSWORD="$SHOP_ACCESS_TOKEN"
 
 export SHOPIFY_FLAG_STORE="$SHOPIFY_SHOP"
 export SHOPIFY_CLI_THEME_TOKEN="$SHOPIFY_PASSWORD"

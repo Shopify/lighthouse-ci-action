@@ -6,9 +6,15 @@ branding:
 description: 'Run Lighthouse CI on Shopify themes directly from GitHub'
 inputs:
   access_token:
-    description: 'Custom app access token'
+    description: 'Legacy custom app access token (for apps created before Jan 2026)'
     # required: false because you can still authenticate with private
-    # app credentials
+    # app credentials, or with client_id/client_secret
+    required: false
+  client_id:
+    description: 'Client ID for Dev Dashboard app (use with client_secret instead of access_token)'
+    required: false
+  client_secret:
+    description: 'Client secret for Dev Dashboard app (use with client_id instead of access_token)'
     required: false
   store:
     description: '<domain>.myshopify.com URL'
