@@ -32,8 +32,10 @@
 [[ -n "$INPUT_LHCI_GITHUB_TOKEN" ]]     && export LHCI_GITHUB_TOKEN="$INPUT_LHCI_GITHUB_TOKEN"
 
 # Optional, these are used
-[[ -n "$INPUT_LHCI_MIN_SCORE_PERFORMANCE" ]]   && export LHCI_MIN_SCORE_PERFORMANCE="$INPUT_LHCI_MIN_SCORE_PERFORMANCE"
-[[ -n "$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY" ]] && export LHCI_MIN_SCORE_ACCESSIBILITY="$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY"
+[[ -n "$INPUT_LHCI_MIN_SCORE_PERFORMANCE" ]]    && export LHCI_MIN_SCORE_PERFORMANCE="$INPUT_LHCI_MIN_SCORE_PERFORMANCE"
+[[ -n "$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY" ]]  && export LHCI_MIN_SCORE_ACCESSIBILITY="$INPUT_LHCI_MIN_SCORE_ACCESSIBILITY"
+[[ -n "$INPUT_LHCI_MIN_SCORE_BEST_PRACTICES" ]] && export LHCI_MIN_SCORE_BEST_PRACTICES="$INPUT_LHCI_MIN_SCORE_BEST_PRACTICES"
+[[ -n "$INPUT_LHCI_MIN_SCORE_SEO" ]]            && export LHCI_MIN_SCORE_SEO="$INPUT_LHCI_MIN_SCORE_SEO"
 
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
@@ -235,6 +237,8 @@ fi
 query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
+min_score_best_practices="${LHCI_MIN_SCORE_BEST_PRACTICES:-}"
+min_score_seo="${LHCI_MIN_SCORE_SEO:-}"
 
 # Env vars for puppeteer to work with our chrome install
 # See https://pptr.dev/api/puppeteer.configuration
@@ -269,6 +273,21 @@ ci:
         - minScore: $min_score_accessibility
           aggregationMethod: median-run
 EOF
+
+# Append optional category assertions
+if [[ -n "$min_score_best_practices" ]]; then
+  echo '      "categories:best-practices":' >> lighthouserc.yml
+  echo '        - error' >> lighthouserc.yml
+  echo "        - minScore: $min_score_best_practices" >> lighthouserc.yml
+  echo '          aggregationMethod: median-run' >> lighthouserc.yml
+fi
+
+if [[ -n "$min_score_seo" ]]; then
+  echo '      "categories:seo":' >> lighthouserc.yml
+  echo '        - error' >> lighthouserc.yml
+  echo "        - minScore: $min_score_seo" >> lighthouserc.yml
+  echo '          aggregationMethod: median-run' >> lighthouserc.yml
+fi
 
 cat <<-EOF > setPreviewCookies.js
 module.exports = async (browser) => {

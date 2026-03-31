@@ -49,6 +49,12 @@ inputs:
     description: 'Minimum accessibility score'
     required: false
     default: 0.9
+  lhci_min_score_best_practices:
+    description: 'Minimum best practices score (not asserted if omitted)'
+    required: false
+  lhci_min_score_seo:
+    description: 'Minimum SEO score (not asserted if omitted)'
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
