@@ -1,5 +1,5 @@
-PROJECT_NAME := cpclermont/lighthouse-ci-action
-VERSION := 2.0.0
+PROJECT_NAME := ghcr.io/shopify/lighthouse-ci-action
+VERSION := 3.0.0
 GITSHA:= $(shell echo $$(git describe --always --long --dirty))
 
 export GITSHA
