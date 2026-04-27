@@ -236,10 +236,18 @@ query_string="?preview_theme_id=${preview_id}&_fd=0&pb=0"
 min_score_performance="${LHCI_MIN_SCORE_PERFORMANCE:-0.6}"
 min_score_accessibility="${LHCI_MIN_SCORE_ACCESSIBILITY:-0.9}"
 
-# Env vars for puppeteer to work with our chrome install
-# See https://pptr.dev/api/puppeteer.configuration
-# export PUPPETEER_CACHE_DIR=/root/.cache/puppeteer
-export PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable'
+# Create a Chrome wrapper that always passes --no-sandbox.
+# Required when running as root in Docker (Chrome 112+ refuses root without it).
+# Both PUPPETEER_EXECUTABLE_PATH and CHROME_PATH (used by chrome-launcher) point
+# here so every Chrome launch — Puppeteer and Lighthouse — picks up the flag.
+cat > /usr/local/bin/chrome-no-sandbox <<'CHROME_WRAPPER'
+#!/bin/sh
+exec /usr/bin/google-chrome-stable --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu "$@"
+CHROME_WRAPPER
+chmod +x /usr/local/bin/chrome-no-sandbox
+
+export PUPPETEER_EXECUTABLE_PATH='/usr/local/bin/chrome-no-sandbox'
+export CHROME_PATH='/usr/local/bin/chrome-no-sandbox'
 export LHCI_BUILD_CONTEXT__CURRENT_HASH="$GITHUB_SHA"
 
 cat <<- EOF > lighthouserc.yml
@@ -249,6 +257,7 @@ ci:
       - "$host/$query_string"
       - "$host/products/$product_handle$query_string"
       - "$host/collections/$collection_handle$query_string"
+    chromePath: '/usr/local/bin/chrome-no-sandbox'
     puppeteerScript: './setPreviewCookies.js'
     puppeteerLaunchOptions:
       args:
