@@ -249,6 +249,8 @@ ci:
       - "$host/$query_string"
       - "$host/products/$product_handle$query_string"
       - "$host/collections/$collection_handle$query_string"
+    settings:
+      chromeFlags: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu'
     puppeteerScript: './setPreviewCookies.js'
     puppeteerLaunchOptions:
       args:
