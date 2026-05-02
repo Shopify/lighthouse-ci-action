@@ -100,6 +100,8 @@ The `shopify/lighthouse-ci-action` accepts the following arguments:
 * `pull_theme` - The ID or name of a theme from which the settings and JSON templates should be used. If not provided Lighthouse will be run against the theme's default settings.
 * `lhci_min_score_performance` - (default: 0.6) Minimum performance score for a passed audit (must be between 0 and 1).
 * `lhci_min_score_accessibility` - (default: 0.9) Minimum accessibility score for a passed audit
+* `lhci_min_score_best_practices` - (optional) Minimum best practices score for a passed audit. Not asserted if omitted.
+* `lhci_min_score_seo` - (optional) Minimum SEO score for a passed audit. Not asserted if omitted.
 
 For the GitHub Status Checks on PR. One of the two arguments is required:
 
