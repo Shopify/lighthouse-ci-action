@@ -1,4 +1,4 @@
-FROM node:20-bookworm
+FROM node:22-bookworm
 
 # Install system dependencies
 RUN apt-get update \
@@ -21,7 +21,7 @@ RUN mkdir -p "$npm_config_prefix" \
   && npm install -g @lhci/cli@0.13.x lighthouse puppeteer
 
 # Install Shopify CLI
-RUN npm install -g @shopify/cli @shopify/theme
+RUN npm install -g @shopify/cli
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
